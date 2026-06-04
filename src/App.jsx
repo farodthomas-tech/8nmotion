@@ -372,7 +372,7 @@ New items get id = max existing id + 1. Keep all existing items unless told to r
 Respond ONLY with the JSON object. No markdown, no explanation, no backticks.`;
 
     try {
-      const res  = await fetch("https://api.anthropic.com/v1/messages", {
+      const res  = await fetch("/.netlify/functions/anthropic", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
