@@ -3,6 +3,13 @@ exports.handler = async function (event) {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "ANTHROPIC_API_KEY environment variable not set" }),
+    };
+  }
+
   try {
     const body = JSON.parse(event.body);
 

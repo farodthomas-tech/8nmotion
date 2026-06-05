@@ -386,8 +386,18 @@ Respond ONLY with the JSON object. No markdown, no explanation, no backticks.`;
       const raw  = data.content?.find(b => b.type==="text")?.text || "";
 
       let parsed;
-      try { parsed = JSON.parse(raw.replace(/```json|```/g,"").trim()); }
-      catch { addLog("Could not parse the AI response. Try rephrasing your update.", "error"); setLoading(false); return; }
+      try {
+        const cleaned = raw.replace(/```json|```/g,"").trim();
+        const start   = cleaned.indexOf("{");
+        const end     = cleaned.lastIndexOf("}");
+        if (start === -1 || end === -1) throw new Error("No JSON found");
+        parsed = JSON.parse(cleaned.slice(start, end + 1));
+      } catch (parseErr) {
+        addLog(`Parse error: ${parseErr.message}`, "error");
+        if (raw) addLog(`Response preview: ${raw.slice(0,200)}`, "info");
+        setLoading(false);
+        return;
+      }
 
       const newData = { ...siteData };
       if (parsed.events)     newData.events     = parsed.events;
