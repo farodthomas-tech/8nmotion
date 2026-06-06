@@ -139,7 +139,7 @@ function ThisWeek({ events }) {
 }
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
-function Hero() {
+function Hero({ onSelectMember }) {
   const now = new Date();
   return (
     <div style={{ background:G.black, position:"relative", overflow:"hidden", minHeight:300, display:"flex", flexDirection:"column" }}>
@@ -160,7 +160,10 @@ function Hero() {
         </p>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginTop:28 }}>
           {CREW.map(m => (
-            <span key={m.name} style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:100, padding:"5px 14px", fontSize:"0.78rem", color:G.goldL, display:"flex", alignItems:"center", gap:6 }}>
+            <span key={m.name} onClick={() => onSelectMember(m.name)} style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:100, padding:"5px 14px", fontSize:"0.78rem", color:G.goldL, display:"flex", alignItems:"center", gap:6, cursor:"pointer", transition:"all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.background="rgba(212,168,67,0.18)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.5)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background="rgba(212,168,67,0.08)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.2)"; }}
+            >
               {m.icon} {m.name}
             </span>
           ))}
@@ -347,12 +350,12 @@ function CrewSection({ onSelectMember }) {
       <SectionHead title="The Crew" extra={<span style={{ fontSize:"0.72rem", color:G.gray }}>Tap a card to view profile</span>} />
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))", gap:12 }}>
         {CREW.map(m => (
-          <div key={m.name} onClick={() => onSelectMember(m.name)} style={{ background:G.black2, border:`1px solid ${m.wears8?"rgba(212,168,67,0.3)":"rgba(255,255,255,0.06)"}`, borderRadius:14, padding:"20px 12px 16px", display:"flex", flexDirection:"column", alignItems:"center", gap:10, cursor:"pointer", transition:"all 0.2s" }}
+          <div key={m.name} onClick={() => onSelectMember(m.name)} style={{ background:G.black2, border:`1px solid rgba(212,168,67,0.3)`, borderRadius:14, padding:"20px 12px 16px", display:"flex", flexDirection:"column", alignItems:"center", gap:10, cursor:"pointer", transition:"all 0.2s" }}
             onMouseEnter={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.borderColor=G.gold; }}
             onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.borderColor=m.wears8?"rgba(212,168,67,0.3)":"rgba(255,255,255,0.06)"; }}
           >
             <div style={{ position:"relative" }}>
-              <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#242424,#2E2800)", border:`2px solid ${m.wears8?G.gold:"rgba(212,168,67,0.15)"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.4rem" }}>{m.icon}</div>
+              <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#242424,#2E2800)", border:`2px solid ${G.gold}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.4rem" }}>{m.icon}</div>
               {m.wears8 && <div style={{ position:"absolute", bottom:-4, right:-4, background:G.gold, color:G.black, fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.65rem", width:18, height:18, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", border:`1px solid ${G.black2}` }}>8</div>}
             </div>
             <div style={{ fontSize:"0.82rem", fontWeight:600, color:G.white, textAlign:"center" }}>{m.name}</div>
@@ -792,7 +795,7 @@ export default function App() {
 
   return (
     <div style={{ fontFamily:"'DM Sans',sans-serif", background:G.black, color:G.white, minHeight:"100vh", overflowX:"hidden" }}>
-      <Hero />
+      <Hero onSelectMember={setProfileOpen} />
       <Nav view={view} setView={(v) => { setView(v); setProfileOpen(null); }} onAdmin={openAdmin} />
 
       {view === "admin" ? (
