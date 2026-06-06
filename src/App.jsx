@@ -165,8 +165,8 @@ function EventsSection({ events }) {
                     <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.8rem", color:G.white, lineHeight:1 }}>{ev.day}</div>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:"0.9rem", fontWeight:500, color:G.white, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{ev.title}</div>
-                    <div style={{ fontSize:"0.76rem", color:G.gray, fontWeight:300 }}>{ev.sub}</div>
+                    <div style={{ fontSize:"0.9rem", fontWeight:500, color:G.white, marginBottom:2, wordBreak:"break-word", lineHeight:1.3 }}>{ev.title}</div>
+                    <div style={{ fontSize:"0.76rem", color:G.gray, fontWeight:300, lineHeight:1.4, wordBreak:"break-word" }}>{ev.sub}</div>
                   </div>
                   <span style={{ fontSize:"0.65rem", padding:"3px 9px", borderRadius:100, fontWeight:600, letterSpacing:"0.04em", whiteSpace:"nowrap", flexShrink:0, background:t.bg, color:t.color, border:`1px solid ${t.border}` }}>{ev.tag}</span>
                 </div>
@@ -315,14 +315,42 @@ function PasswordGate({ onSuccess }) {
 
 // ─── Admin Panel ──────────────────────────────────────────────────────────────
 function AdminPanel({ siteData, setSiteData, onSave }) {
-  const [input, setInput]   = useState("");
-  const [loading, setLoading] = useState(false);
-  const [log, setLog]       = useState([{ msg:"Ready. Type your update below.", type:"info", ts:"" }]);
-  const logRef              = useRef(null);
+  const [input,      setInput]      = useState("");
+  const [loading,    setLoading]    = useState(false);
+  const [log,        setLog]        = useState([{ msg:"Ready. Type your update below.", type:"info", ts:"" }]);
+  const [notifyMsg,  setNotifyMsg]  = useState("");
+  const [notifySubj, setNotifySubj] = useState("");
+  const [notifyType, setNotifyType] = useState("general");
+  const [notifying,  setNotifying]  = useState(false);
+  const logRef = useRef(null);
 
   useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [log]);
 
   const addLog = (msg, type="info") => setLog(l => [...l, { msg, type, ts: new Date().toLocaleTimeString() }]);
+
+  const handleNotify = async () => {
+    if (!notifySubj.trim() || !notifyMsg.trim()) return;
+    setNotifying(true);
+    addLog("Sending email to all subscribers...", "info");
+    try {
+      const res  = await fetch("/.netlify/functions/notify", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ subject: notifySubj, message: notifyMsg, updateType: notifyType }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        addLog(`Email sent! ${data.message}`, "success");
+        setNotifySubj("");
+        setNotifyMsg("");
+      } else {
+        addLog(`Email error: ${data.error}`, "error");
+      }
+    } catch (err) {
+      addLog(`Email error: ${err.message}`, "error");
+    }
+    setNotifying(false);
+  };
 
   const examples = [
     "Add a flag football game for Khari on July 12th at 10am at East Cobb Park",
@@ -480,9 +508,117 @@ Respond ONLY with the JSON object. No markdown, no explanation, no backticks.`;
               ))}
             </div>
           </div>
+
+          {/* Notify Subscribers */}
+          <div style={{ background:"rgba(110,226,110,0.04)", border:"1px solid rgba(110,226,110,0.15)", borderRadius:12, padding:"24px 28px" }}>
+            <div style={{ fontSize:"0.75rem", letterSpacing:"0.08em", textTransform:"uppercase", color:"#6EE26E", fontWeight:600, marginBottom:16 }}>📧 Notify Subscribers</div>
+            <p style={{ fontSize:"0.82rem", color:G.gray, marginBottom:16, fontWeight:300, lineHeight:1.6 }}>Send an email blast to everyone subscribed to 8NMotion updates.</p>
+            <div style={{ display:"flex", gap:10, marginBottom:10, flexWrap:"wrap" }}>
+              {["general","events","spotlights","updates"].map(t => (
+                <button key={t} onClick={() => setNotifyType(t)} style={{ background: notifyType===t ? "rgba(110,226,110,0.15)" : "rgba(255,255,255,0.04)", border:`1px solid ${notifyType===t?"rgba(110,226,110,0.4)":"rgba(255,255,255,0.1)"}`, borderRadius:100, padding:"5px 14px", color: notifyType===t ? "#6EE26E" : G.gray, fontSize:"0.72rem", cursor:"pointer", fontFamily:"inherit", textTransform:"capitalize" }}>{t}</button>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder="Email subject line (e.g. Bailee just won her tournament!)"
+              value={notifySubj}
+              onChange={e => setNotifySubj(e.target.value)}
+              style={{ width:"100%", background:"#0D0D0D", border:"1px solid rgba(110,226,110,0.15)", borderRadius:8, padding:"11px 14px", color:G.white, fontSize:"0.88rem", fontFamily:"inherit", outline:"none", marginBottom:10 }}
+            />
+            <textarea
+              placeholder="Message body — what do you want subscribers to know?"
+              value={notifyMsg}
+              onChange={e => setNotifyMsg(e.target.value)}
+              style={{ width:"100%", background:"#0D0D0D", border:"1px solid rgba(110,226,110,0.15)", borderRadius:8, padding:"11px 14px", color:G.white, fontSize:"0.88rem", fontFamily:"inherit", outline:"none", resize:"vertical", minHeight:80, marginBottom:12 }}
+            />
+            <button
+              onClick={handleNotify}
+              disabled={notifying || !notifySubj.trim() || !notifyMsg.trim()}
+              style={{ background: notifying?"rgba(110,226,110,0.3)":"rgba(110,226,110,0.15)", border:"1px solid rgba(110,226,110,0.4)", color:"#6EE26E", borderRadius:8, padding:"10px 24px", fontWeight:700, fontSize:"0.85rem", cursor: notifying?"not-allowed":"pointer", fontFamily:"inherit", letterSpacing:"0.04em" }}
+            >
+              {notifying ? "Sending…" : "Send Email to All Subscribers →"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Subscribe Form ───────────────────────────────────────────────────────────
+function SubscribeForm() {
+  const [form,    setForm]    = useState({ firstName:"", lastName:"", email:"" });
+  const [status,  setStatus]  = useState(null); // null | "loading" | "success" | "error"
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async () => {
+    if (!form.email.trim()) return;
+    setStatus("loading");
+    try {
+      const res  = await fetch("/.netlify/functions/subscribe", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success) { setStatus("success"); setMessage(data.message); }
+      else              { setStatus("error");   setMessage(data.error || "Something went wrong. Try again."); }
+    } catch (err) {
+      setStatus("error");
+      setMessage("Connection error. Please try again.");
+    }
+  };
+
+  if (status === "success") return (
+    <div style={{ background:"linear-gradient(135deg,#0A1A00,#0D0D0D)", border:"1px solid rgba(110,226,110,0.3)", borderRadius:16, padding:"40px 32px", textAlign:"center", marginBottom:56 }}>
+      <div style={{ fontSize:"2.5rem", marginBottom:12 }}>🎉</div>
+      <h3 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.6rem", color:"#6EE26E", letterSpacing:"0.04em", marginBottom:8 }}>You're In!</h3>
+      <p style={{ color:"rgba(250,250,250,0.6)", fontSize:"0.9rem", fontWeight:300 }}>{message} You'll get an email every time 8NMotion posts a new update.</p>
+    </div>
+  );
+
+  return (
+    <section style={{ marginBottom:56 }}>
+      <SectionHead title="Stay in the Loop" />
+      <div style={{ background:"linear-gradient(135deg,#1A1200,#0D0D0D)", border:"1px solid rgba(212,168,67,0.25)", borderRadius:16, padding:"36px 40px" }}>
+        <p style={{ color:"rgba(250,250,250,0.6)", fontSize:"0.9rem", fontWeight:300, marginBottom:24, lineHeight:1.7 }}>
+          Subscribe to get email updates every time we post something new — games, milestones, family news, and everything 8NMotion. No spam, just family.
+        </p>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginBottom:12 }}>
+          <input
+            type="text"
+            placeholder="First name"
+            value={form.firstName}
+            onChange={e => setForm(f => ({ ...f, firstName:e.target.value }))}
+            style={{ background:"#0D0D0D", border:"1px solid rgba(212,168,67,0.2)", borderRadius:8, padding:"12px 16px", color:G.white, fontSize:"0.9rem", fontFamily:"inherit", outline:"none" }}
+          />
+          <input
+            type="text"
+            placeholder="Last name"
+            value={form.lastName}
+            onChange={e => setForm(f => ({ ...f, lastName:e.target.value }))}
+            style={{ background:"#0D0D0D", border:"1px solid rgba(212,168,67,0.2)", borderRadius:8, padding:"12px 16px", color:G.white, fontSize:"0.9rem", fontFamily:"inherit", outline:"none" }}
+          />
+          <input
+            type="email"
+            placeholder="Email address *"
+            value={form.email}
+            onChange={e => setForm(f => ({ ...f, email:e.target.value }))}
+            onKeyDown={e => e.key === "Enter" && handleSubmit()}
+            style={{ background:"#0D0D0D", border:"1px solid rgba(212,168,67,0.2)", borderRadius:8, padding:"12px 16px", color:G.white, fontSize:"0.9rem", fontFamily:"inherit", outline:"none" }}
+          />
+        </div>
+        {status === "error" && <p style={{ fontSize:"0.78rem", color:"#FF6B6B", marginBottom:10 }}>{message}</p>}
+        <button
+          onClick={handleSubmit}
+          disabled={status === "loading" || !form.email.trim()}
+          style={{ background: status==="loading" ? "rgba(212,168,67,0.4)" : G.gold, color:G.black, border:"none", borderRadius:8, padding:"12px 32px", fontWeight:700, fontSize:"0.9rem", cursor: status==="loading"?"not-allowed":"pointer", fontFamily:"inherit", letterSpacing:"0.04em" }}
+        >
+          {status === "loading" ? "Subscribing…" : "Subscribe for Updates →"}
+        </button>
+        <p style={{ fontSize:"0.72rem", color:G.gray, marginTop:12, fontWeight:300 }}>We'll email you when new updates are posted. Unsubscribe anytime.</p>
+      </div>
+    </section>
   );
 }
 
@@ -548,13 +684,14 @@ export default function App() {
           {showSection("crew")    && <CrewSection />}
           {showSection("parents") && <ParentsSection />}
           {showSection("events")  && (
-            <div style={{ display:"grid", gridTemplateColumns:"minmax(0,1.1fr) minmax(0,0.9fr)", gap:32, marginBottom:56, flexWrap:"wrap" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,380px),1fr))", gap:32, marginBottom:56 }}>
               <EventsSection events={siteData.events} />
               <Spotlight spotlights={siteData.spotlights} />
             </div>
           )}
           {showSection("updates") && <UpdatesFeed updates={siteData.updates} />}
           {showSection("photos")  && <PhotosSection />}
+          {(view === "home")      && <SubscribeForm />}
         </div>
       )}
 
