@@ -824,7 +824,7 @@ Media strip item fields: id, type (highlight/photo/youtube/instagram/tiktok), ic
 New items: id = max+1. Keep all existing unless told to remove.`;
 
     try {
-      const res  = await fetch("/.netlify/functions/anthropic", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:3000, system:systemPrompt, messages:[{role:"user",content:userMsg}] }) });
+      const res  = await fetch("/.netlify/functions/anthropic", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:1500, system:systemPrompt, messages:[{role:"user",content:userMsg}] }) });
       const data = await res.json();
       const raw  = data.content?.find(b=>b.type==="text")?.text || "";
       if (!raw) { addLog(`API error: ${JSON.stringify(data).slice(0,200)}`,"error"); setLoading(false); return; }
