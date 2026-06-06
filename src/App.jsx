@@ -811,20 +811,20 @@ function AdminPanel({ siteData, setSiteData, onSave, mediaItems, setMediaItems, 
     addLog(`You: "${userMsg}"`,"user");
 
     const systemPrompt = `You are the update engine for the 8NMotion family website.
-FAMILY: Rod (Dad, CNA, Pharod Thomas Photography), Kourtney (Mom, UPS Brands and Partnerships, Atlanta Unboxed x Showcase Atlanta x Renee Montgomery), Davian (oldest, Air Force, deployed Venezuela until October, "The Prince"), Bailee (11th grade, softball: Impact Gold ATL + Hillgrove HS, track: Hillgrove HS + Peak Performance South, GHSA State 8th All American, "BeautMode"), Raelyn (6th grade, basketball + track + flag football, artist, crochets, "Rae of Sunshine"), Blaize (1st grade, flag football + softball + track + self-taught gymnastics, golden birthday Aug 6 turns 6, "Litty"), Khari (Kindergarten, cousin treated as brother, flag football and baseball coming soon, #8), Legend (family dog, "Fur Sibling").
-Spotlight order: Davian, Bailee, Raelyn, Blaize, Khari. No em dashes. Fun personal tone.
-CURRENT DATA: ${JSON.stringify(siteData, null, 2)}
-CURRENT MEDIA STRIP: ${JSON.stringify(mediaItems, null, 2)}
-Return ONLY valid JSON (no markdown, no backticks):
-{ "action":"brief summary", "events":[...full array if changed...], "spotlights":[...full array if changed...], "updates":[...full array if changed...], "media":[...full array if changed...] }
-Event fields: id, month (3-letter), day (2-char string), title, sub, tag (track/sports/school/family/special)
-Spotlight: id, icon, label, name, title, body, stats ([{num,lbl}])
-Update: id, icon, category, time, text
-Media strip item fields: id, type (highlight/photo/youtube/instagram/tiktok), icon (emoji), label, caption, url (optional — photo filename or full video URL)
-New items: id = max+1. Keep all existing unless told to remove.`;
+FAMILY: Rod (Dad, CNA, Pharod Thomas Photography), Kourtney (Mom, UPS, Atlanta Unboxed x Showcase Atlanta x Renee Montgomery), Davian (Air Force, deployed Venezuela until Oct, "The Prince"), Bailee (11th grade, softball: Impact Gold ATL + Hillgrove, track: Hillgrove + Peak Performance South, GHSA State 8th All American, "BeautMode"), Raelyn (6th grade, basketball+track+flag football, artist, "Rae of Sunshine"), Blaize (1st grade, flag football+softball+track+gymnastics, golden bday Aug 6, "Litty"), Khari (Kindergarten, brother, #8), Legend (fur sibling).
+Spotlight order: Davian, Bailee, Raelyn, Blaize, Khari. No em dashes. Fun tone.
+CURRENT DATA: ${JSON.stringify(siteData)}
+CURRENT MEDIA: ${JSON.stringify(mediaItems)}
+Return ONLY valid compact JSON (no markdown, no backticks, no extra spaces):
+{"action":"summary","events":[...only if changed...],"spotlights":[...only if changed...],"updates":[...only if changed...],"media":[...only if changed...]}
+Only include sections that changed. Keep all existing items unless told to remove.
+Event: id,month(3-letter),day(2-char),title,sub,tag(track/sports/school/family/special)
+Spotlight: id,icon,label,name,title,body,stats([{num,lbl}])
+Update: id,icon,category,time,text
+Media: id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(optional)`;
 
     try {
-      const res  = await fetch("/.netlify/functions/anthropic", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:1500, system:systemPrompt, messages:[{role:"user",content:userMsg}] }) });
+      const res  = await fetch("/.netlify/functions/anthropic", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:2500, system:systemPrompt, messages:[{role:"user",content:userMsg}] }) });
       const data = await res.json();
       const raw  = data.content?.find(b=>b.type==="text")?.text || "";
       if (!raw) { addLog(`API error: ${JSON.stringify(data).slice(0,200)}`,"error"); setLoading(false); return; }
