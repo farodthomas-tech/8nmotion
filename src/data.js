@@ -107,7 +107,25 @@ export const DEFAULT_UPDATES = [
   },
 ];
 
-// ─── Parents Section ──────────────────────────────────────────────────────────
+// ─── Atlanta Unboxed Feature ──────────────────────────────────────────────────
+export const ATLANTA_UNBOXED = {
+  title: "Atlanta Unboxed x Showcase Atlanta",
+  subtitle: "A cross collaboration with UPS and Renee Montgomery",
+  body: "Kourtney is bringing Atlanta to the world through UPS Brands and Partnerships. Atlanta Unboxed in partnership with Showcase Atlanta is a digital campaign spotlighting local Black owned businesses and the brands that make Atlanta authentically Atlanta. Stay tuned for event highlights, featured businesses, and everything this campaign brings to the city.",
+  links: [],
+  embeds: [],
+};
+
+// ─── Default Media Strip ──────────────────────────────────────────────────────
+export const DEFAULT_MEDIA = [
+  { id:1, type:"highlight", icon:"🏆", label:"Bailee — GHSA All American", caption:"8th in the state of Georgia. All American. That is BeautMode." },
+  { id:2, type:"highlight", icon:"👸🏾", label:"Atlanta Unboxed x Showcase Atlanta", caption:"Kourtney x UPS x Renee Montgomery. Spotlighting Black owned businesses in Atlanta." },
+  { id:3, type:"highlight", icon:"✈️", label:"Davian — Serving Proudly", caption:"The Prince is deployed in Venezuela. Holding it down for the country and the family." },
+  { id:4, type:"highlight", icon:"🔥", label:"Blaize — Golden Birthday Aug 6th", caption:"She turns 6 on the 6th. The golden birthday is almost here!" },
+  { id:5, type:"highlight", icon:"☀️", label:"Raelyn — Rae of Sunshine", caption:"Three sports, an artist, and a crocheter. There is nobody else like her." },
+  { id:6, type:"highlight", icon:"🚒", label:"Welcome Home Khari!", caption:"Khari joined the 8NMotion family and fit right in from day one." },
+  { id:7, type:"highlight", icon:"8️⃣", label:"8NMotion — Est. 2008", caption:"Infinite Love. Endless Motion. Always moving. Always together." },
+];
 export const PARENTS = [
   {
     name: "Rod",
@@ -119,8 +137,8 @@ export const PARENTS = [
   {
     name: "Kourtney",
     icon: "👸🏾",
-    title: "Making Major Moves at UPS",
-    body: "Kourtney holds this family together while making major moves at UPS Brands and Partnerships. She is bringing something special to Atlanta tied to the FIFA World Cup, spotlighting local Black owned businesses and Atlanta staples on a global stage. Details dropping soon. Watch this space.",
-    tag: "UPS Brands and Partnerships · FIFA World Cup ATL",
+    title: "Atlanta Unboxed x Showcase Atlanta",
+    body: "Kourtney holds this family together while making major moves at UPS Brands and Partnerships. She is the force behind Atlanta Unboxed in partnership with Showcase Atlanta, a cross collaboration with UPS and Renee Montgomery putting a spotlight on local Black owned businesses and the brands that make Atlanta authentically Atlanta. Events and highlights dropping soon.",
+    tag: "UPS Brands and Partnerships · Atlanta Unboxed · Showcase Atlanta · x Renee Montgomery",
   },
 ];

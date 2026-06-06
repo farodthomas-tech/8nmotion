@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { CREW, DEFAULT_EVENTS, DEFAULT_SPOTLIGHTS, DEFAULT_UPDATES, PARENTS } from "./data.js";
+import { CREW, DEFAULT_EVENTS, DEFAULT_SPOTLIGHTS, DEFAULT_UPDATES, PARENTS, DEFAULT_MEDIA, ATLANTA_UNBOXED } from "./data.js";
 
 const ADMIN_PASSWORD = "Infinite";
 const STORAGE_KEY    = "8nm-v1";
 const MESSAGES_KEY   = "8nm-davian-messages";
+const MEDIA_KEY      = "8nm-media-v1";
 
 const TAG_STYLES = {
   track:   { bg:"rgba(212,168,67,0.15)",  color:"#D4A843", border:"rgba(212,168,67,0.3)"  },
@@ -27,9 +28,9 @@ const PROFILES = {
   },
   Kourtney: {
     icon:"👸🏾", color:"#F0CC72", wears8:false,
-    bio:"Kourtney holds this family together while making major moves at UPS Brands and Partnerships. She is bringing something special to Atlanta tied to the FIFA World Cup, spotlighting local Black owned businesses and Atlanta staples on a global stage. Details dropping soon. Watch this space.",
-    sports:[], activities:["💼 UPS Brands and Partnerships","🌍 FIFA World Cup ATL Events","🫶 10 Year Kidney Donation Anniversary"],
-    accomplishments:["10 Years since kidney donation — a selfless act of love","FIFA World Cup Atlanta event series coming soon","Spotlighting Black owned businesses on a global stage"],
+    bio:"Kourtney holds this family together while making major moves at UPS Brands and Partnerships. She is the force behind Atlanta Unboxed in partnership with Showcase Atlanta, a cross collaboration with UPS and Renee Montgomery that puts a spotlight on local Black owned businesses and the brands that make Atlanta authentically Atlanta. Events, features, and highlights dropping soon. Watch this space.",
+    sports:[], activities:["💼 UPS Brands and Partnerships","🎯 Atlanta Unboxed x Showcase Atlanta","🤝 Cross Collaboration with Renee Montgomery","🫶 10 Year Kidney Donation Anniversary"],
+    accomplishments:["10 Years since kidney donation — a selfless act of love","Leading Atlanta Unboxed digital campaign at UPS","Cross collaboration with Renee Montgomery and Showcase Atlanta","Spotlighting Black owned businesses and Atlanta staples"],
   },
   Davian: {
     icon:"✈️", color:"#7AADFF", wears8:true,
@@ -87,6 +88,173 @@ function SectionHead({ title, extra }) {
       <div style={{ flex:1, height:1, background:"linear-gradient(to right,rgba(212,168,67,0.3),transparent)" }} />
       {extra}
     </div>
+  );
+}
+
+// ─── MEDIA STRIP ─────────────────────────────────────────────────────────────
+function MediaStrip({ media }) {
+  const [expanded, setExpanded] = useState(null);
+  const doubled = [...media, ...media]; // duplicate for seamless loop
+
+  const getEmbedUrl = (item) => {
+    if (!item.url) return null;
+    if (item.type === "youtube") {
+      const id = item.url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
+      return id ? `https://www.youtube.com/embed/${id}?autoplay=1` : null;
+    }
+    if (item.type === "tiktok") return item.url;
+    return null;
+  };
+
+  return (
+    <>
+      <style>{`
+        @keyframes scrollLeft {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .media-strip-track { animation: scrollLeft 40s linear infinite; }
+        .media-strip-track:hover { animation-play-state: paused; }
+      `}</style>
+
+      {/* Expanded Modal */}
+      {expanded && (
+        <div onClick={() => setExpanded(null)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.92)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:G.black2, border:"1px solid rgba(212,168,67,0.3)", borderRadius:16, maxWidth:600, width:"100%", overflow:"hidden" }}>
+            {/* Media content */}
+            {expanded.type === "photo" && expanded.url && (
+              <img src={`/photos/${expanded.url}`} alt={expanded.label} style={{ width:"100%", maxHeight:400, objectFit:"cover" }} />
+            )}
+            {(expanded.type === "youtube" || expanded.type === "tiktok") && getEmbedUrl(expanded) && (
+              <div style={{ position:"relative", paddingBottom:"56.25%", height:0 }}>
+                <iframe src={getEmbedUrl(expanded)} style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%" }} frameBorder="0" allowFullScreen title={expanded.label} />
+              </div>
+            )}
+            {expanded.type === "instagram" && expanded.url && (
+              <div style={{ padding:20, textAlign:"center" }}>
+                <p style={{ color:G.goldL, fontSize:"0.9rem", marginBottom:12 }}>View on Instagram</p>
+                <a href={expanded.url} target="_blank" rel="noreferrer" style={{ background:G.gold, color:G.black, padding:"10px 24px", borderRadius:8, fontWeight:700, fontSize:"0.85rem", textDecoration:"none" }}>Open Post →</a>
+              </div>
+            )}
+            {expanded.type === "highlight" && (
+              <div style={{ padding:32, textAlign:"center" }}>
+                <div style={{ fontSize:"3rem", marginBottom:12 }}>{expanded.icon}</div>
+              </div>
+            )}
+            {/* Caption */}
+            <div style={{ padding:"16px 20px 20px" }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", color:G.gold, letterSpacing:"0.04em", marginBottom:6 }}>{expanded.label}</div>
+              <p style={{ color:"rgba(250,250,250,0.65)", fontSize:"0.85rem", lineHeight:1.6, fontWeight:300 }}>{expanded.caption}</p>
+              <button onClick={() => setExpanded(null)} style={{ marginTop:16, background:"none", border:"1px solid rgba(212,168,67,0.3)", color:G.gold, borderRadius:8, padding:"8px 20px", cursor:"pointer", fontFamily:"inherit", fontSize:"0.78rem" }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Strip */}
+      <div style={{ overflow:"hidden", background:G.black2, borderTop:"1px solid rgba(212,168,67,0.1)", borderBottom:"1px solid rgba(212,168,67,0.1)", padding:"16px 0", marginBottom:0, position:"relative" }}>
+        {/* Edge fades */}
+        <div style={{ position:"absolute", left:0, top:0, bottom:0, width:60, background:`linear-gradient(to right,${G.black2},transparent)`, zIndex:2, pointerEvents:"none" }} />
+        <div style={{ position:"absolute", right:0, top:0, bottom:0, width:60, background:`linear-gradient(to left,${G.black2},transparent)`, zIndex:2, pointerEvents:"none" }} />
+
+        <div className="media-strip-track" style={{ display:"flex", gap:12, width:"max-content", paddingLeft:12 }}>
+          {doubled.map((item, i) => (
+            <div key={i} onClick={() => setExpanded(item)} style={{ flexShrink:0, width:200, background:G.black, border:"1px solid rgba(212,168,67,0.15)", borderRadius:12, overflow:"hidden", cursor:"pointer", transition:"border-color 0.2s", position:"relative" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor="rgba(212,168,67,0.5)"}
+              onMouseLeave={e => e.currentTarget.style.borderColor="rgba(212,168,67,0.15)"}
+            >
+              {/* Thumbnail */}
+              <div style={{ height:110, background:"linear-gradient(135deg,#1A1200,#2A2000)", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden" }}>
+                {item.type === "photo" && item.url
+                  ? <img src={`/photos/${item.url}`} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                  : item.type === "youtube" && item.url
+                  ? <img src={`https://img.youtube.com/vi/${item.url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1]}/mqdefault.jpg`} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                  : <span style={{ fontSize:"2.5rem", opacity:0.4 }}>{item.icon || "8️⃣"}</span>
+                }
+                {/* Play button for video */}
+                {(item.type === "youtube" || item.type === "tiktok" || item.type === "instagram") && (
+                  <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.3)" }}>
+                    <div style={{ width:36, height:36, borderRadius:"50%", background:"rgba(212,168,67,0.9)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <span style={{ fontSize:"0.9rem", marginLeft:3 }}>▶</span>
+                    </div>
+                  </div>
+                )}
+                {/* Type badge */}
+                <div style={{ position:"absolute", top:6, right:6, background:"rgba(0,0,0,0.7)", borderRadius:100, padding:"2px 8px", fontSize:"0.58rem", color:G.gold, fontWeight:600, letterSpacing:"0.06em", textTransform:"uppercase" }}>
+                  {item.type === "youtube" ? "YouTube" : item.type === "instagram" ? "Instagram" : item.type === "tiktok" ? "TikTok" : item.type === "photo" ? "Photo" : "Highlight"}
+                </div>
+              </div>
+              {/* Label */}
+              <div style={{ padding:"10px 12px" }}>
+                <div style={{ fontSize:"0.75rem", fontWeight:600, color:G.white, lineHeight:1.3, marginBottom:3, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{item.label}</div>
+                <div style={{ fontSize:"0.68rem", color:G.gray, lineHeight:1.4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{item.caption}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── ATLANTA UNBOXED FEATURE ──────────────────────────────────────────────────
+function AtlantaUnboxedFeature() {
+  return (
+    <section style={{ marginBottom:56 }}>
+      <SectionHead title="Atlanta Unboxed" />
+      <div style={{ background:"linear-gradient(135deg,#0A0A1A,#0D0D0D)", border:"1px solid rgba(240,204,114,0.3)", borderRadius:16, overflow:"hidden" }}>
+        {/* Header band */}
+        <div style={{ background:"linear-gradient(90deg,rgba(240,204,114,0.12),rgba(240,204,114,0.04))", borderBottom:"1px solid rgba(240,204,114,0.15)", padding:"20px 32px", display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.5rem", color:G.goldL, letterSpacing:"0.06em" }}>Atlanta Unboxed</div>
+          <div style={{ width:1, height:24, background:"rgba(240,204,114,0.25)", flexShrink:0 }} />
+          <div style={{ fontSize:"0.78rem", color:"rgba(240,204,114,0.7)", fontWeight:400 }}>x Showcase Atlanta</div>
+          <div style={{ width:1, height:24, background:"rgba(240,204,114,0.25)", flexShrink:0 }} />
+          <div style={{ fontSize:"0.78rem", color:"rgba(240,204,114,0.7)", fontWeight:400 }}>UPS Brands and Partnerships</div>
+          <div style={{ marginLeft:"auto", background:"rgba(240,204,114,0.1)", border:"1px solid rgba(240,204,114,0.25)", borderRadius:100, padding:"4px 14px", fontSize:"0.68rem", color:G.goldL, fontWeight:600, letterSpacing:"0.06em", whiteSpace:"nowrap" }}>COMING SOON</div>
+        </div>
+
+        <div style={{ padding:"28px 32px", display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:28 }}>
+          {/* Description */}
+          <div>
+            <div style={{ fontSize:"0.68rem", letterSpacing:"0.14em", textTransform:"uppercase", color:G.goldL, fontWeight:600, marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ display:"inline-block", width:20, height:2, background:G.goldL }} />👸🏾 The Campaign
+            </div>
+            <p style={{ color:"rgba(250,250,250,0.65)", fontSize:"0.9rem", lineHeight:1.75, fontWeight:300 }}>
+              {ATLANTA_UNBOXED.body}
+            </p>
+          </div>
+
+          {/* Collaboration callout */}
+          <div>
+            <div style={{ fontSize:"0.68rem", letterSpacing:"0.14em", textTransform:"uppercase", color:G.goldL, fontWeight:600, marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ display:"inline-block", width:20, height:2, background:G.goldL }} />🤝 The Collaboration
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {[
+                { icon:"📦", name:"UPS Brands and Partnerships", role:"Campaign Partner" },
+                { icon:"👸🏾", name:"Kourtney", role:"UPS Lead · Campaign Force" },
+                { icon:"🏀", name:"Renee Montgomery", role:"Cross Collaboration Partner" },
+                { icon:"🏙️", name:"Showcase Atlanta", role:"Platform Partner" },
+              ].map((p,i) => (
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:12, background:"rgba(255,255,255,0.03)", borderRadius:10, padding:"10px 14px" }}>
+                  <span style={{ fontSize:"1.2rem" }}>{p.icon}</span>
+                  <div>
+                    <div style={{ fontSize:"0.82rem", fontWeight:500, color:G.white }}>{p.name}</div>
+                    <div style={{ fontSize:"0.7rem", color:G.gray, fontWeight:300 }}>{p.role}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Watch this space */}
+        <div style={{ borderTop:"1px solid rgba(240,204,114,0.1)", padding:"16px 32px", display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:8, height:8, borderRadius:"50%", background:G.goldL, boxShadow:`0 0 8px ${G.goldL}`, flexShrink:0 }} />
+          <span style={{ fontSize:"0.8rem", color:"rgba(240,204,114,0.6)", fontStyle:"italic", fontFamily:"'Lora',serif" }}>Event highlights, featured businesses, and campaign updates dropping soon. Watch this space.</span>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -601,7 +769,7 @@ function PasswordGate({ onSuccess }) {
 }
 
 // ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
-function AdminPanel({ siteData, setSiteData, onSave }) {
+function AdminPanel({ siteData, setSiteData, onSave, mediaItems, setMediaItems, onSaveMedia }) {
   const [input,      setInput]      = useState("");
   const [loading,    setLoading]    = useState(false);
   const [log,        setLog]        = useState([{ msg:"Ready. Type your update below.", type:"info", ts:"" }]);
@@ -631,8 +799,8 @@ function AdminPanel({ siteData, setSiteData, onSave }) {
   const examples = [
     "Add a flag football game for Khari on July 12th at 10am at East Cobb Park",
     "Add a spotlight for Raelyn — she won her basketball tournament this weekend",
-    "Blaize's golden birthday is August 6th, she turns 6 on the 6th",
-    "Add an update: the family had an amazing time at Londan's Sweet 16",
+    "Add a YouTube video to the media strip: https://youtube.com/watch?v=xyz — Bailee's state meet highlights",
+    "Add an Instagram post to the media strip: https://instagram.com/p/xyz — Atlanta Unboxed launch event",
     "Add Kourtney's FIFA World Cup event details for July 15th at State Farm Arena",
   ];
 
@@ -643,14 +811,16 @@ function AdminPanel({ siteData, setSiteData, onSave }) {
     addLog(`You: "${userMsg}"`,"user");
 
     const systemPrompt = `You are the update engine for the 8NMotion family website.
-FAMILY: Rod (Dad, CNA, Pharod Thomas Photography), Kourtney (Mom, UPS Brands and Partnerships, FIFA World Cup ATL), Davian (oldest, Air Force, deployed Venezuela until October, "The Prince"), Bailee (11th grade, softball: Impact Gold ATL + Hillgrove HS, track: Hillgrove HS + Peak Performance South, GHSA State 8th All American, "BeautMode"), Raelyn (6th grade, basketball + track + flag football, artist, crochets, "Rae of Sunshine"), Blaize (1st grade, flag football + softball + track + self-taught gymnastics, golden birthday Aug 6 turns 6, "Litty"), Khari (Kindergarten, cousin treated as brother, flag football and baseball coming soon, #8), Legend (family dog, "Fur Sibling").
+FAMILY: Rod (Dad, CNA, Pharod Thomas Photography), Kourtney (Mom, UPS Brands and Partnerships, Atlanta Unboxed x Showcase Atlanta x Renee Montgomery), Davian (oldest, Air Force, deployed Venezuela until October, "The Prince"), Bailee (11th grade, softball: Impact Gold ATL + Hillgrove HS, track: Hillgrove HS + Peak Performance South, GHSA State 8th All American, "BeautMode"), Raelyn (6th grade, basketball + track + flag football, artist, crochets, "Rae of Sunshine"), Blaize (1st grade, flag football + softball + track + self-taught gymnastics, golden birthday Aug 6 turns 6, "Litty"), Khari (Kindergarten, cousin treated as brother, flag football and baseball coming soon, #8), Legend (family dog, "Fur Sibling").
 Spotlight order: Davian, Bailee, Raelyn, Blaize, Khari. No em dashes. Fun personal tone.
 CURRENT DATA: ${JSON.stringify(siteData, null, 2)}
+CURRENT MEDIA STRIP: ${JSON.stringify(mediaItems, null, 2)}
 Return ONLY valid JSON (no markdown, no backticks):
-{ "action":"brief summary", "events":[...full array if changed...], "spotlights":[...full array if changed...], "updates":[...full array if changed...] }
+{ "action":"brief summary", "events":[...full array if changed...], "spotlights":[...full array if changed...], "updates":[...full array if changed...], "media":[...full array if changed...] }
 Event fields: id, month (3-letter), day (2-char string), title, sub, tag (track/sports/school/family/special)
 Spotlight: id, icon, label, name, title, body, stats ([{num,lbl}])
 Update: id, icon, category, time, text
+Media strip item fields: id, type (highlight/photo/youtube/instagram/tiktok), icon (emoji), label, caption, url (optional — photo filename or full video URL)
 New items: id = max+1. Keep all existing unless told to remove.`;
 
     try {
@@ -672,6 +842,10 @@ New items: id = max+1. Keep all existing unless told to remove.`;
       if (parsed.spotlights) newData.spotlights = parsed.spotlights;
       if (parsed.updates)    newData.updates    = parsed.updates;
       setSiteData(newData); onSave(newData);
+      if (parsed.media) {
+        setMediaItems(parsed.media);
+        onSaveMedia(parsed.media);
+      }
       addLog(`Done: ${parsed.action||"Site updated!"}`,"success");
     } catch(err) { addLog(`Error: ${err.message}`,"error"); }
     setLoading(false);
@@ -763,6 +937,7 @@ export default function App() {
   const [loaded,       setLoaded]       = useState(false);
   const [profileOpen,  setProfileOpen]  = useState(null);
   const [siteData,     setSiteData]     = useState({ events:DEFAULT_EVENTS, spotlights:DEFAULT_SPOTLIGHTS, updates:DEFAULT_UPDATES });
+  const [mediaItems,   setMediaItems]   = useState(DEFAULT_MEDIA);
   const [davianMsgs,   setDavianMsgs]   = useState([]);
 
   useEffect(() => {
@@ -771,11 +946,14 @@ export default function App() {
       if (saved) setSiteData(JSON.parse(saved));
       const msgs = localStorage.getItem(MESSAGES_KEY);
       if (msgs) setDavianMsgs(JSON.parse(msgs));
+      const media = localStorage.getItem(MEDIA_KEY);
+      if (media) setMediaItems(JSON.parse(media));
     } catch {}
     setLoaded(true);
   }, []);
 
-  const handleSave = (data) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {} };
+  const handleSave      = (data)  => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data));  } catch {} };
+  const handleSaveMedia = (media) => { try { localStorage.setItem(MEDIA_KEY,   JSON.stringify(media)); } catch {} };
 
   const handleAddMessage = (msg) => {
     const updated = [...davianMsgs, msg];
@@ -797,10 +975,11 @@ export default function App() {
     <div style={{ fontFamily:"'DM Sans',sans-serif", background:G.black, color:G.white, minHeight:"100vh", overflowX:"hidden" }}>
       <Hero onSelectMember={setProfileOpen} />
       <Nav view={view} setView={(v) => { setView(v); setProfileOpen(null); }} onAdmin={openAdmin} />
+      {(view === "home" || view === "media") && <MediaStrip media={mediaItems} />}
 
       {view === "admin" ? (
         authed
-          ? <AdminPanel siteData={siteData} setSiteData={setSiteData} onSave={handleSave} />
+          ? <AdminPanel siteData={siteData} setSiteData={setSiteData} onSave={handleSave} mediaItems={mediaItems} setMediaItems={setMediaItems} onSaveMedia={handleSaveMedia} />
           : <PasswordGate onSuccess={() => setAuthed(true)} />
       ) : profileOpen ? (
         <ProfilePage name={profileOpen} onBack={() => setProfileOpen(null)} messages={davianMsgs} onAddMessage={handleAddMessage} />
@@ -809,6 +988,7 @@ export default function App() {
           {showSection("home")    && <ThisWeek events={siteData.events} />}
           {showSection("crew")    && <CrewSection onSelectMember={setProfileOpen} />}
           {showSection("parents") && <ParentsSection />}
+          {showSection("parents") && <AtlantaUnboxedFeature />}
           {showSection("events")  && (
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,380px),1fr))", gap:32, marginBottom:56 }}>
               <EventsSection events={siteData.events} />
