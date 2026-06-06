@@ -404,7 +404,7 @@ Respond ONLY with the JSON object. No markdown, no explanation, no backticks.`;
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
-          model:"claude-sonnet-4-20250514",
+          model:"claude-sonnet-4-5",
           max_tokens:3000,
           system: systemPrompt,
           messages:[{ role:"user", content:userMsg }],
