@@ -23,6 +23,7 @@ export const DEFAULT_EVENTS = [
   { id: 9,  month: "Jun", day: "19", title: "Juneteenth Family Celebration 🖤❤️💚",          sub: "Family · Annual Tradition",                           tag: "family"  },
   { id: 10, month: "Jun", day: "21", title: "Softball Tournament — Viera, FL 🥎",            sub: "Viera, FL · Jun 21–27 · Details TBD",                 tag: "sports"  },
   { id: 11, month: "Jun", day: "23", title: "Kourtney's 41st Birthday 🎂👸🏾",               sub: "Annual · Celebrate the Queen!",                       tag: "family"  },
+  { id: 12, month: "Aug", day: "06", title: "Blaize's Golden Birthday 🔥🎂",               sub: "She turns 6 on the 6th! · Golden Birthday!",          tag: "special" },
 ];
 
 // ─── Default Spotlights (age order: Davian, Bailee, Raelyn, Blaize, Khari) ───
