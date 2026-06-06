@@ -411,7 +411,9 @@ Respond ONLY with the JSON object. No markdown, no explanation, no backticks.`;
         }),
       });
       const data = await res.json();
+      addLog(`Status: ${res.status} | Keys: ${Object.keys(data).join(", ")}`, "info");
       const raw  = data.content?.find(b => b.type==="text")?.text || "";
+      if (!raw) addLog(`Full response: ${JSON.stringify(data).slice(0, 300)}`, "info");
 
       let parsed;
       try {
