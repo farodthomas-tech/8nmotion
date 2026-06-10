@@ -12,18 +12,12 @@ export const CREW = [
 
 // ─── Default Events ───────────────────────────────────────────────────────────
 export const DEFAULT_EVENTS = [
-  { id: 1,  month: "Jun", day: "05", title: "Londan's Sweet 16 🎉",                          sub: "The Candela Bar · 6:00 PM – 10:00 PM",              tag: "family"  },
-  { id: 2,  month: "Jun", day: "06", title: "Bailee Softball — Impact Gold ATL",             sub: "Coal Mountain Park, Cumming GA · Field 7 · 11:30 AM", tag: "sports" },
-  { id: 3,  month: "Jun", day: "06", title: "Bailee Softball — Impact Gold ATL",             sub: "Coal Mountain Park, Cumming GA · Field 7 · 1:15 PM",  tag: "sports" },
-  { id: 4,  month: "Jun", day: "07", title: "Bailee Softball — Impact Gold ATL",             sub: "Sawnee Mountain Park, Cumming GA · Field 1 · 9:45 AM", tag: "sports" },
-  { id: 5,  month: "Jun", day: "07", title: "Bailee Softball — Impact Gold ATL",             sub: "Sawnee Mountain Park, Cumming GA · Field 1 · 11:30 AM", tag: "sports" },
-  { id: 6,  month: "Jun", day: "08", title: "Bailee Softball — Impact Gold ATL",             sub: "Sawnee Mountain Park, Cumming GA · Field 3 · 9:45 AM", tag: "sports" },
-  { id: 7,  month: "Jun", day: "08", title: "Bailee Softball — Impact Gold ATL",             sub: "Sawnee Mountain Park, Cumming GA · Field 4 · 11:30 AM", tag: "sports" },
-  { id: 8,  month: "Jun", day: "10", title: "Kourtney's Kidney Donation Anniversary 🫶",     sub: "10 Years · Annual Celebration",                       tag: "family"  },
-  { id: 9,  month: "Jun", day: "19", title: "Juneteenth Family Celebration 🖤❤️💚",          sub: "Family · Annual Tradition",                           tag: "family"  },
-  { id: 10, month: "Jun", day: "21", title: "Softball Tournament — Viera, FL 🥎",            sub: "Viera, FL · Jun 21–27 · Details TBD",                 tag: "sports"  },
-  { id: 11, month: "Jun", day: "23", title: "Kourtney's 41st Birthday 🎂👸🏾",               sub: "Annual · Celebrate the Queen!",                       tag: "family"  },
-  { id: 12, month: "Aug", day: "06", title: "Blaize's Golden Birthday 🔥🎂",               sub: "She turns 6 on the 6th! · Golden Birthday!",          tag: "special" },
+  { id: 1,  month: "Jun", day: "09", title: "UPS x World Cup Block Party 🌍⚽",              sub: "Atlanta · Kourtney x UPS x Showcase Atlanta · Today!",  tag: "special" },
+  { id: 2,  month: "Jun", day: "10", title: "Kourtney's 10 Year Kidney Donation Anniversary 🫶", sub: "10 Years of Selfless Love · Annual Celebration",        tag: "family"  },
+  { id: 3,  month: "Jun", day: "19", title: "Juneteenth Family Celebration 🖤❤️💚",          sub: "Family · Annual Tradition",                            tag: "family"  },
+  { id: 4,  month: "Jun", day: "21", title: "Softball Tournament — Viera, FL 🥎",            sub: "Viera, FL · Jun 21–27 · Details TBD",                  tag: "sports"  },
+  { id: 5,  month: "Jun", day: "23", title: "Kourtney's Birthday 🎂👸🏾",                    sub: "Turning 41 · Celebrate the Queen!",                    tag: "family"  },
+  { id: 6,  month: "Aug", day: "06", title: "Blaize's Golden Birthday 🔥🎂",                 sub: "She turns 6 on the 6th! · Golden Birthday!",           tag: "special" },
 ];
 
 // ─── Default Spotlights (age order: Davian, Bailee, Raelyn, Blaize, Khari) ───
@@ -79,27 +73,34 @@ export const DEFAULT_SPOTLIGHTS = [
 export const DEFAULT_UPDATES = [
   {
     id: 1,
+    icon: "🌍",
+    category: "Atlanta Unboxed x UPS",
+    time: "Today · June 9, 2026",
+    text: "Kourtney did that! Today she hosted the UPS x World Cup Block Party as part of Atlanta Unboxed in partnership with Showcase Atlanta, a cross collaboration with UPS and Renee Montgomery. The block party officially kicked off the World Cup coming to Atlanta, bringing the experience to parts of the city that would not otherwise see it. And yes the kids were there too soaking it all in. This is history and our family was part of it. Proud does not even cover it. Photos coming soon!",
+  },
+  {
+    id: 2,
     icon: "🏆",
     category: "Track and Field",
     time: "This Week",
     text: "BAILEE DID THAT! Competing at the GHSA Track and Field State Championship, Bailee finished 8th in the STATE of Georgia and earned All American recognition in the process. All American. Let that sink in. From early morning practices with Peak Performance South to representing Hillgrove High on the biggest stage, she put in the work and the work paid off. BeautMode on the track, All American on the record books. We see you Bailee! 💅🏾💪🏽",
   },
   {
-    id: 2,
+    id: 3,
     icon: "🚒",
     category: "Family News",
-    time: "Today",
-    text: "It is official, Khari has moved in and the 8NMotion house just got a whole lot livelier! He will be with us through October and is already part of everything. The girls claimed him as a brother from day one and now he is here to prove it. Welcome home Khari, you are right where you belong!",
-  },
-  {
-    id: 3,
-    icon: "🎓",
-    category: "School Corner",
     time: "This Week",
-    text: "The girls finished the school year strong and are leveling up! Bailee is headed into 11th grade, Raelyn is making the big jump to 6th grade and middle school, and Blaize is stepping into 1st grade. And joining them this fall is Khari who will be starting Kindergarten. The whole crew is growing up fast. 8NMotion is so proud of all of them!",
+    text: "It is official, Khari has moved in and the 8NMotion house just got a whole lot livelier! He will be with us through October 2026 and is already part of everything. The girls claimed him as a brother from day one and now he is here to prove it. Welcome home Khari, you are right where you belong!",
   },
   {
     id: 4,
+    icon: "🎓",
+    category: "School Corner",
+    time: "This Month",
+    text: "The girls finished the school year strong and are leveling up! Bailee is headed into 11th grade, Raelyn is making the big jump to 6th grade and middle school, and Blaize is stepping into 1st grade. And joining them this fall is Khari who will be starting Kindergarten. The whole crew is growing up fast. 8NMotion is so proud of all of them!",
+  },
+  {
+    id: 5,
     icon: "👸🏾",
     category: "Family News",
     time: "This Month",
@@ -118,6 +119,7 @@ export const ATLANTA_UNBOXED = {
 
 // ─── Default Media Strip ──────────────────────────────────────────────────────
 export const DEFAULT_MEDIA = [
+  { id:8, type:"highlight", icon:"🌍", label:"UPS x World Cup Block Party — June 9, 2026", caption:"Kourtney brought the World Cup to Atlanta communities today. The kids were there. History was made." },
   { id:1, type:"highlight", icon:"🏆", label:"Bailee — GHSA All American", caption:"8th in the state of Georgia. All American. That is BeautMode." },
   { id:2, type:"highlight", icon:"👸🏾", label:"Atlanta Unboxed x Showcase Atlanta", caption:"Kourtney x UPS x Renee Montgomery. Spotlighting Black owned businesses in Atlanta." },
   { id:3, type:"highlight", icon:"✈️", label:"Davian — Serving Proudly", caption:"The Prince is deployed in Venezuela. Holding it down for the country and the family." },

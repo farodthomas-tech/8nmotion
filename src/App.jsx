@@ -1,10 +1,36 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { CREW, DEFAULT_EVENTS, DEFAULT_SPOTLIGHTS, DEFAULT_UPDATES, PARENTS, DEFAULT_MEDIA, ATLANTA_UNBOXED } from "./data.js";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = "Infinite";
-const STORAGE_KEY    = "8nm-v1";
+const STORAGE_KEY    = "8nm-v2";
 const MESSAGES_KEY   = "8nm-davian-messages";
 const MEDIA_KEY      = "8nm-media-v1";
+const VISITS_KEY     = "8nm-visits";
+
+// ─── Seasonal Themes ──────────────────────────────────────────────────────────
+function getSeasonalTheme() {
+  const mo = new Date().getMonth(); // 0-11
+  if (mo >= 5 && mo <= 7) return { // Summer Jun-Aug
+    name:"Summer", accent:"#E07820", accent2:"#F0A040", accentDim:"rgba(224,120,32,0.15)",
+    border:"rgba(224,120,32,0.3)", tag:"Softball & Travel Ball Season 🥎",
+  };
+  if (mo >= 8 && mo <= 10) return { // Fall Sep-Nov
+    name:"Fall", accent:"#8B2252", accent2:"#C45A8A", accentDim:"rgba(139,34,82,0.15)",
+    border:"rgba(139,34,82,0.3)", tag:"Softball · Baseball · Flag Football Season 🏈",
+  };
+  if (mo >= 11 || mo <= 1) return { // Winter Dec-Feb
+    name:"Winter", accent:"#1A6B3A", accent2:"#2EA05A", accentDim:"rgba(26,107,58,0.15)",
+    border:"rgba(26,107,58,0.3)", tag:"Basketball & Indoor Track Season 🏀",
+  };
+  // Spring Mar-May
+  return {
+    name:"Spring", accent:"#2A8B2A", accent2:"#4DB84D", accentDim:"rgba(42,139,42,0.15)",
+    border:"rgba(42,139,42,0.3)", tag:"Track & Field · Peak Performance South 🏃",
+  };
+}
+
+const SEASON = getSeasonalTheme();
 
 const TAG_STYLES = {
   track:   { bg:"rgba(212,168,67,0.15)",  color:"#D4A843", border:"rgba(212,168,67,0.3)"  },
@@ -19,25 +45,42 @@ const G = {
   gold:"#D4A843",  goldL:"#F0CC72",  gray:"#888888", white:"#FAFAFA",
 };
 
+// ─── Family Quotes ────────────────────────────────────────────────────────────
+const FAMILY_QUOTES = [
+  { text:"Infinite Love. Endless Motion.", attr:"8NMotion Family" },
+  { text:"We don't just show up. We show out.", attr:"The 8NMotion Crew" },
+  { text:"Every number 8 on this field carries a whole family with them.", attr:"Rod" },
+  { text:"In this family we cheer the loudest and love the hardest.", attr:"8NMotion, Est. 2008" },
+  { text:"From the track to the diamond to the court, we are always moving.", attr:"8NMotion" },
+  { text:"Davian showed us what it means to wear 8 with pride. The rest followed.", attr:"The Family" },
+  { text:"Family is not always blood. It is the people who show up.", attr:"8NMotion" },
+  { text:"No off season when you are built different.", attr:"Blaize, Age 5" },
+  { text:"BeautMode does not slow down for anyone.", attr:"Bailee" },
+  { text:"She is literally a Rae of Sunshine.", attr:"Everyone who knows Raelyn" },
+];
+
+// ─── Profiles ─────────────────────────────────────────────────────────────────
 const PROFILES = {
   Rod: {
     icon:"👑", color:"#D4A843", wears8:true,
     bio:"Behind the lens and building something new. Rod is growing Pharod Thomas Photography while stepping into an exciting new chapter with CNA. The same eye for detail that makes him a great dad shows up in every shot he takes. More chapters coming soon.",
     sports:[], activities:["📸 Pharod Thomas Photography","💼 CNA","🏃 Peak Performance South Track Club (Coming Soon)"],
     accomplishments:["Founded Peak Performance South Track Club","Building Pharod Thomas Photography brand","Starting new chapter with CNA"],
+    hasMedia:true,
   },
   Kourtney: {
     icon:"👸🏾", color:"#F0CC72", wears8:false,
     bio:"Kourtney holds this family together while making major moves at UPS Brands and Partnerships. She is the force behind Atlanta Unboxed in partnership with Showcase Atlanta, a cross collaboration with UPS and Renee Montgomery that puts a spotlight on local Black owned businesses and the brands that make Atlanta authentically Atlanta. Events, features, and highlights dropping soon. Watch this space.",
-    sports:[], activities:["💼 UPS Brands and Partnerships","🎯 Atlanta Unboxed x Showcase Atlanta","🤝 Cross Collaboration with Renee Montgomery","🫶 10 Year Kidney Donation Anniversary"],
-    accomplishments:["10 Years since kidney donation — a selfless act of love","Leading Atlanta Unboxed digital campaign at UPS","Cross collaboration with Renee Montgomery and Showcase Atlanta","Spotlighting Black owned businesses and Atlanta staples"],
+    sports:[], activities:["💼 UPS Brands and Partnerships","🎯 Atlanta Unboxed x Showcase Atlanta","🤝 Cross Collaboration with Renee Montgomery","🫶 10 Year Kidney Donation Anniversary — June 10, 2026"],
+    accomplishments:["10 Year kidney donation anniversary June 10, 2026","Leading Atlanta Unboxed digital campaign at UPS","Cross collaboration with Renee Montgomery and Showcase Atlanta","Spotlighting Black owned businesses and Atlanta staples"],
+    hasMedia:true,
   },
   Davian: {
     icon:"✈️", color:"#7AADFF", wears8:true,
-    bio:"Davian set the standard for what it means to wear #8 in this family and then took it to a whole new level by serving in the United States Air Force. Currently deployed in Venezuela until October, he is out here serving his country while his family holds him down back home. The Prince is always with us no matter the distance.",
-    sports:[], activities:["✈️ United States Air Force","🌍 Deployed — Venezuela","📅 Returns October 2025"],
-    accomplishments:["Serving in the United States Air Force","Currently deployed in Venezuela","Set the #8 standard for the whole family"],
-    deployed:true,
+    bio:"Davian set the standard for what it means to wear #8 in this family and then took it to a whole new level by serving in the United States Air Force. Currently deployed in Venezuela, he is out here serving his country while his family holds him down back home. Beyond the uniform Davian is also a talented artist. The Prince is always with us no matter the distance.",
+    sports:[], activities:["✈️ United States Air Force","🌍 Currently Deployed — Venezuela","🎨 Artist"],
+    accomplishments:["Serving in the United States Air Force","Currently deployed in Venezuela","Set the #8 standard for the whole family","Talented visual artist"],
+    deployed:true, hasMedia:true, hasArtwork:true,
   },
   Bailee: {
     icon:"💅🏾💪🏽", color:"#D4A843", wears8:true,
@@ -45,36 +88,42 @@ const PROFILES = {
     sports:["🥎 Softball — Impact Gold ATL","🥎 Softball — Hillgrove High School","🏃 Track — Hillgrove High School","🏃 Track — Peak Performance South"],
     activities:["💅🏾 BeautMode","🧶 Crocheting","✨ Big Sister Energy"],
     accomplishments:["GHSA State Track and Field Championships — 8th Place","All American Recognition — GHSA Track and Field","11th Grade at Hillgrove High School","Dual sport athlete — Softball and Track"],
+    hasMedia:true,
   },
   Raelyn: {
     icon:"☀️", color:"#F0CC72", wears8:true,
     bio:"She is literally a Rae of Sunshine. Three sports and a whole lot of soul. Raelyn lights up every room, every court, every field she walks into. When she is not running down opponents in basketball, track, or flag football she is creating something beautiful, drawing and crocheting with her big sister Bailee's crafty energy.",
     sports:["🏀 Basketball","🏃 Track","🏈 Flag Football"],
     activities:["☀️ Rae of Sunshine","🎨 Drawing and Art","🧶 Crocheting","✨ Creative Soul"],
-    accomplishments:["3 sport athlete — Basketball, Track, Flag Football","6th Grade at Hillgrove Middle School","Most creative kid in the family","Carries that sunshine everywhere she goes"],
+    accomplishments:["3 sport athlete — Basketball, Track, Flag Football","6th Grade — Middle School","Most creative kid in the family","Carries that sunshine everywhere she goes"],
+    hasMedia:true,
   },
   Blaize: {
     icon:"🔥", color:"#F0A060", wears8:true,
     bio:"Softball, flag football, track AND gymnastics? Blaize literally does not have an off switch. She is teaching herself gymnastics moves while also putting in work on her reading because being Litty means growing in every direction. There is no off season when you are built different.",
     sports:["🏈 Flag Football","🥎 Softball","🏃 Track","🤸 Gymnastics (Self Taught)"],
     activities:["🔥 Litty","📚 Working on Reading","🤸 Teaching herself gymnastics"],
-    accomplishments:["4 sport athlete including self-taught gymnastics","1st Grade — just getting started","Golden Birthday coming up — turns 6 on August 6th","No off season, no excuses"],
+    accomplishments:["4 sport athlete including self-taught gymnastics","1st Grade — just getting started","Golden Birthday August 6, 2026 — turns 6 on the 6th","No off season, no excuses"],
+    hasMedia:true,
   },
   Khari: {
     icon:"🚒", color:"#FF6B6B", wears8:true,
     bio:"Khari came into the 8NMotion family and fit right in from day one. The girls claimed him as a brother and that is exactly what he is. He is getting ready to hit the flag football field and baseball diamond when the time comes and best believe the whole family will be there. Family is not always blood and Khari is proof of that.",
     sports:["🏈 Flag Football — Coming Soon","⚾ Baseball — Coming Soon"],
-    activities:["🚒 Brother · Family","🏠 Living with the 8NMotion crew through October"],
-    accomplishments:["Joined the 8NMotion family June 2025","Starting Kindergarten this fall","Sports registration coming soon","Already one of us"],
+    activities:["🚒 Brother · Family","🏠 Living with the 8NMotion crew through October 2026"],
+    accomplishments:["Joined the 8NMotion family June 2026","Starting Kindergarten Fall 2026","Sports registration coming soon","Already one of us"],
+    hasMedia:true,
   },
   Legend: {
     icon:"🐾", color:"#888888", wears8:false,
     bio:"Legend is the official fur sibling of the 8NMotion family. Always the first to greet you at the door, always the last to leave your side. Legend does not wear the number 8 but he holds it down for this family every single day just by being Legend.",
     sports:[], activities:["🐾 Professional Greeter","🛋️ Chief Nap Officer","❤️ Fur Sibling"],
     accomplishments:["Beloved fur sibling of the 8NMotion family","Expert at making everyone feel welcome","Holds it down at the house every day"],
+    hasMedia:false,
   },
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function useInterval(fn, ms) {
   const ref = useRef();
   useEffect(() => { ref.current = fn; }, [fn]);
@@ -85,8 +134,66 @@ function SectionHead({ title, extra }) {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:28 }}>
       <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.8rem", letterSpacing:"0.06em", color:G.white, whiteSpace:"nowrap" }}>{title}</h2>
-      <div style={{ flex:1, height:1, background:"linear-gradient(to right,rgba(212,168,67,0.3),transparent)" }} />
+      <div style={{ flex:1, height:1, background:`linear-gradient(to right,${SEASON.border},transparent)` }} />
       {extra}
+    </div>
+  );
+}
+
+// ─── GOLDEN BIRTHDAY COUNTDOWN ────────────────────────────────────────────────
+function BlaizeCountdown() {
+  const [timeLeft, setTimeLeft] = useState({});
+  useEffect(() => {
+    const calc = () => {
+      const now     = new Date();
+      const bday    = new Date(now.getFullYear(), 7, 6); // Aug 6
+      if (now > bday) bday.setFullYear(bday.getFullYear() + 1);
+      const diff    = bday - now;
+      const days    = Math.floor(diff / (1000*60*60*24));
+      const hours   = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+      const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
+      const seconds = Math.floor((diff % (1000*60)) / 1000);
+      setTimeLeft({ days, hours, minutes, seconds });
+    };
+    calc();
+    const t = setInterval(calc, 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  if (timeLeft.days > 60) return null; // only show within 60 days
+
+  return (
+    <div style={{ background:"linear-gradient(135deg,#1A0800,#0D0D0D)", border:"1px solid rgba(240,120,32,0.4)", borderRadius:16, padding:"24px 28px", marginBottom:40 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, flexWrap:"wrap" }}>
+        <span style={{ fontSize:"1.5rem" }}>🔥</span>
+        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.3rem", color:"#F0A060", letterSpacing:"0.06em" }}>Blaize's Golden Birthday Countdown</div>
+        <div style={{ fontSize:"0.78rem", color:G.gray, fontWeight:300 }}>She turns 6 on August 6th!</div>
+      </div>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
+        {[["Days", timeLeft.days], ["Hours", timeLeft.hours], ["Minutes", timeLeft.minutes], ["Seconds", timeLeft.seconds]].map(([lbl, val]) => (
+          <div key={lbl} style={{ background:"rgba(240,120,32,0.08)", border:"1px solid rgba(240,120,32,0.2)", borderRadius:12, padding:"14px 20px", textAlign:"center", minWidth:70 }}>
+            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"2rem", color:"#F0A060", lineHeight:1 }}>{String(val).padStart(2,"0")}</div>
+            <div style={{ fontSize:"0.65rem", color:G.gray, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:4 }}>{lbl}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── ROTATING QUOTE ───────────────────────────────────────────────────────────
+function RotatingQuote() {
+  const [idx, setIdx]     = useState(() => Math.floor(Math.random() * FAMILY_QUOTES.length));
+  const [fading, setFading] = useState(false);
+  useInterval(() => {
+    setFading(true);
+    setTimeout(() => { setIdx(i => (i+1) % FAMILY_QUOTES.length); setFading(false); }, 400);
+  }, 7000);
+  const q = FAMILY_QUOTES[idx];
+  return (
+    <div style={{ textAlign:"center", padding:"24px 20px", marginBottom:40, opacity:fading?0:1, transition:"opacity 0.4s ease" }}>
+      <div style={{ fontFamily:"'Lora',serif", fontStyle:"italic", fontSize:"clamp(1rem,2.5vw,1.3rem)", color:"rgba(212,168,67,0.85)", lineHeight:1.6, marginBottom:8 }}>"{q.text}"</div>
+      <div style={{ fontSize:"0.72rem", color:G.gray, letterSpacing:"0.1em", textTransform:"uppercase" }}>{q.attr}</div>
     </div>
   );
 }
@@ -94,7 +201,9 @@ function SectionHead({ title, extra }) {
 // ─── MEDIA STRIP ─────────────────────────────────────────────────────────────
 function MediaStrip({ media }) {
   const [expanded, setExpanded] = useState(null);
-  const doubled = [...media, ...media]; // duplicate for seamless loop
+  // Newest first, then duplicate for loop
+  const sorted = [...media].sort((a,b) => b.id - a.id);
+  const doubled = [...sorted, ...sorted];
 
   const getEmbedUrl = (item) => {
     if (!item.url) return null;
@@ -109,19 +218,14 @@ function MediaStrip({ media }) {
   return (
     <>
       <style>{`
-        @keyframes scrollLeft {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
+        @keyframes scrollLeft { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
         .media-strip-track { animation: scrollLeft 40s linear infinite; }
         .media-strip-track:hover { animation-play-state: paused; }
       `}</style>
 
-      {/* Expanded Modal */}
       {expanded && (
         <div onClick={() => setExpanded(null)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.92)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
           <div onClick={e => e.stopPropagation()} style={{ background:G.black2, border:"1px solid rgba(212,168,67,0.3)", borderRadius:16, maxWidth:600, width:"100%", overflow:"hidden" }}>
-            {/* Media content */}
             {expanded.type === "photo" && expanded.url && (
               <img src={`/photos/${expanded.url}`} alt={expanded.label} style={{ width:"100%", maxHeight:400, objectFit:"cover" }} />
             )}
@@ -141,7 +245,6 @@ function MediaStrip({ media }) {
                 <div style={{ fontSize:"3rem", marginBottom:12 }}>{expanded.icon}</div>
               </div>
             )}
-            {/* Caption */}
             <div style={{ padding:"16px 20px 20px" }}>
               <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", color:G.gold, letterSpacing:"0.04em", marginBottom:6 }}>{expanded.label}</div>
               <p style={{ color:"rgba(250,250,250,0.65)", fontSize:"0.85rem", lineHeight:1.6, fontWeight:300 }}>{expanded.caption}</p>
@@ -151,19 +254,15 @@ function MediaStrip({ media }) {
         </div>
       )}
 
-      {/* Strip */}
-      <div style={{ overflow:"hidden", background:G.black2, borderTop:"1px solid rgba(212,168,67,0.1)", borderBottom:"1px solid rgba(212,168,67,0.1)", padding:"16px 0", marginBottom:0, position:"relative" }}>
-        {/* Edge fades */}
+      <div style={{ overflow:"hidden", background:G.black2, borderTop:"1px solid rgba(212,168,67,0.1)", borderBottom:"1px solid rgba(212,168,67,0.1)", padding:"16px 0", position:"relative" }}>
         <div style={{ position:"absolute", left:0, top:0, bottom:0, width:60, background:`linear-gradient(to right,${G.black2},transparent)`, zIndex:2, pointerEvents:"none" }} />
         <div style={{ position:"absolute", right:0, top:0, bottom:0, width:60, background:`linear-gradient(to left,${G.black2},transparent)`, zIndex:2, pointerEvents:"none" }} />
-
         <div className="media-strip-track" style={{ display:"flex", gap:12, width:"max-content", paddingLeft:12 }}>
           {doubled.map((item, i) => (
             <div key={i} onClick={() => setExpanded(item)} style={{ flexShrink:0, width:200, background:G.black, border:"1px solid rgba(212,168,67,0.15)", borderRadius:12, overflow:"hidden", cursor:"pointer", transition:"border-color 0.2s", position:"relative" }}
               onMouseEnter={e => e.currentTarget.style.borderColor="rgba(212,168,67,0.5)"}
               onMouseLeave={e => e.currentTarget.style.borderColor="rgba(212,168,67,0.15)"}
             >
-              {/* Thumbnail */}
               <div style={{ height:110, background:"linear-gradient(135deg,#1A1200,#2A2000)", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden" }}>
                 {item.type === "photo" && item.url
                   ? <img src={`/photos/${item.url}`} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
@@ -171,7 +270,6 @@ function MediaStrip({ media }) {
                   ? <img src={`https://img.youtube.com/vi/${item.url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1]}/mqdefault.jpg`} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   : <span style={{ fontSize:"2.5rem", opacity:0.4 }}>{item.icon || "8️⃣"}</span>
                 }
-                {/* Play button for video */}
                 {(item.type === "youtube" || item.type === "tiktok" || item.type === "instagram") && (
                   <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.3)" }}>
                     <div style={{ width:36, height:36, borderRadius:"50%", background:"rgba(212,168,67,0.9)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -179,12 +277,10 @@ function MediaStrip({ media }) {
                     </div>
                   </div>
                 )}
-                {/* Type badge */}
                 <div style={{ position:"absolute", top:6, right:6, background:"rgba(0,0,0,0.7)", borderRadius:100, padding:"2px 8px", fontSize:"0.58rem", color:G.gold, fontWeight:600, letterSpacing:"0.06em", textTransform:"uppercase" }}>
                   {item.type === "youtube" ? "YouTube" : item.type === "instagram" ? "Instagram" : item.type === "tiktok" ? "TikTok" : item.type === "photo" ? "Photo" : "Highlight"}
                 </div>
               </div>
-              {/* Label */}
               <div style={{ padding:"10px 12px" }}>
                 <div style={{ fontSize:"0.75rem", fontWeight:600, color:G.white, lineHeight:1.3, marginBottom:3, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{item.label}</div>
                 <div style={{ fontSize:"0.68rem", color:G.gray, lineHeight:1.4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{item.caption}</div>
@@ -197,34 +293,27 @@ function MediaStrip({ media }) {
   );
 }
 
-// ─── ATLANTA UNBOXED FEATURE ──────────────────────────────────────────────────
+// ─── ATLANTA UNBOXED ──────────────────────────────────────────────────────────
 function AtlantaUnboxedFeature() {
   return (
     <section style={{ marginBottom:56 }}>
       <SectionHead title="Atlanta Unboxed" />
       <div style={{ background:"linear-gradient(135deg,#0A0A1A,#0D0D0D)", border:"1px solid rgba(240,204,114,0.3)", borderRadius:16, overflow:"hidden" }}>
-        {/* Header band */}
         <div style={{ background:"linear-gradient(90deg,rgba(240,204,114,0.12),rgba(240,204,114,0.04))", borderBottom:"1px solid rgba(240,204,114,0.15)", padding:"20px 32px", display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.5rem", color:G.goldL, letterSpacing:"0.06em" }}>Atlanta Unboxed</div>
           <div style={{ width:1, height:24, background:"rgba(240,204,114,0.25)", flexShrink:0 }} />
-          <div style={{ fontSize:"0.78rem", color:"rgba(240,204,114,0.7)", fontWeight:400 }}>x Showcase Atlanta</div>
+          <div style={{ fontSize:"0.78rem", color:"rgba(240,204,114,0.7)" }}>x Showcase Atlanta</div>
           <div style={{ width:1, height:24, background:"rgba(240,204,114,0.25)", flexShrink:0 }} />
-          <div style={{ fontSize:"0.78rem", color:"rgba(240,204,114,0.7)", fontWeight:400 }}>UPS Brands and Partnerships</div>
+          <div style={{ fontSize:"0.78rem", color:"rgba(240,204,114,0.7)" }}>UPS Brands and Partnerships</div>
           <div style={{ marginLeft:"auto", background:"rgba(240,204,114,0.1)", border:"1px solid rgba(240,204,114,0.25)", borderRadius:100, padding:"4px 14px", fontSize:"0.68rem", color:G.goldL, fontWeight:600, letterSpacing:"0.06em", whiteSpace:"nowrap" }}>COMING SOON</div>
         </div>
-
         <div style={{ padding:"28px 32px", display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:28 }}>
-          {/* Description */}
           <div>
             <div style={{ fontSize:"0.68rem", letterSpacing:"0.14em", textTransform:"uppercase", color:G.goldL, fontWeight:600, marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ display:"inline-block", width:20, height:2, background:G.goldL }} />👸🏾 The Campaign
             </div>
-            <p style={{ color:"rgba(250,250,250,0.65)", fontSize:"0.9rem", lineHeight:1.75, fontWeight:300 }}>
-              {ATLANTA_UNBOXED.body}
-            </p>
+            <p style={{ color:"rgba(250,250,250,0.65)", fontSize:"0.9rem", lineHeight:1.75, fontWeight:300 }}>{ATLANTA_UNBOXED.body}</p>
           </div>
-
-          {/* Collaboration callout */}
           <div>
             <div style={{ fontSize:"0.68rem", letterSpacing:"0.14em", textTransform:"uppercase", color:G.goldL, fontWeight:600, marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ display:"inline-block", width:20, height:2, background:G.goldL }} />🤝 The Collaboration
@@ -247,11 +336,33 @@ function AtlantaUnboxedFeature() {
             </div>
           </div>
         </div>
+        <div style={{ borderTop:"1px solid rgba(240,204,114,0.1)", padding:"24px 32px" }}>
+          {/* Block Party Recap */}
+          <div style={{ background:"rgba(240,204,114,0.06)", border:"1px solid rgba(240,204,114,0.2)", borderRadius:12, padding:"20px 24px", marginBottom:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12, flexWrap:"wrap" }}>
+              <span style={{ fontSize:"1.3rem" }}>🌍⚽</span>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.1rem", color:G.goldL, letterSpacing:"0.04em" }}>World Cup Block Party — June 9, 2026</div>
+              <div style={{ marginLeft:"auto", background:"rgba(110,226,110,0.1)", border:"1px solid rgba(110,226,110,0.3)", borderRadius:100, padding:"3px 12px", fontSize:"0.65rem", color:"#6EE26E", fontWeight:600 }}>IT HAPPENED</div>
+            </div>
+            <p style={{ color:"rgba(250,250,250,0.65)", fontSize:"0.88rem", lineHeight:1.75, fontWeight:300, marginBottom:16 }}>
+              Kourtney hosted the UPS x World Cup Block Party as part of Atlanta Unboxed in partnership with Showcase Atlanta, officially kicking off the World Cup coming to Atlanta. The event brought the World Cup experience to parts of the city that would not otherwise see it. The 8NMotion kids were there soaking in every moment. This is history and our family was part of making it happen.
+            </p>
+            {/* Photo placeholders */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))", gap:8 }}>
+              {[1,2,3,4,5,6].map(i => (
+                <div key={i} style={{ aspectRatio:"1", borderRadius:8, background:"linear-gradient(135deg,#0A0A1A,#1A1A2A)", border:"1px solid rgba(240,204,114,0.15)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4 }}>
+                  <span style={{ fontSize:"1.2rem", opacity:0.25 }}>📸</span>
+                  <span style={{ fontSize:"0.58rem", color:"rgba(240,204,114,0.3)" }}>Photo {i}</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize:"0.7rem", color:G.gray, marginTop:10, fontWeight:300 }}>Photos coming soon — drop block party photos into <code style={{ background:"rgba(255,255,255,0.06)", padding:"1px 5px", borderRadius:4 }}>public/photos/blockparty/</code></p>
+          </div>
+        </div>
 
-        {/* Watch this space */}
         <div style={{ borderTop:"1px solid rgba(240,204,114,0.1)", padding:"16px 32px", display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:8, height:8, borderRadius:"50%", background:G.goldL, boxShadow:`0 0 8px ${G.goldL}`, flexShrink:0 }} />
-          <span style={{ fontSize:"0.8rem", color:"rgba(240,204,114,0.6)", fontStyle:"italic", fontFamily:"'Lora',serif" }}>Event highlights, featured businesses, and campaign updates dropping soon. Watch this space.</span>
+          <span style={{ fontSize:"0.8rem", color:"rgba(240,204,114,0.6)", fontStyle:"italic", fontFamily:"'Lora',serif" }}>More event highlights, featured businesses, and campaign updates dropping soon. Watch this space.</span>
         </div>
       </div>
     </section>
@@ -260,28 +371,23 @@ function AtlantaUnboxedFeature() {
 
 // ─── THIS WEEK ────────────────────────────────────────────────────────────────
 function ThisWeek({ events }) {
-  const now   = new Date();
-  const in7   = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
+  const now  = new Date();
+  const in7  = new Date(now.getTime() + 7*24*60*60*1000);
+  const mos  = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const yr   = now.getFullYear();
   const upcoming = events.filter(ev => {
-    const d = new Date(`${ev.month} ${ev.day}, ${now.getFullYear()}`);
+    const d = new Date(`${ev.month} ${ev.day}, ${yr}`);
     return d >= now && d <= in7;
-  }).sort((a,b) => {
-    const da = new Date(`${a.month} ${a.day}, ${now.getFullYear()}`);
-    const db = new Date(`${b.month} ${b.day}, ${now.getFullYear()}`);
-    return da - db;
-  });
-
+  }).sort((a,b) => new Date(`${a.month} ${a.day}, ${yr}`) - new Date(`${b.month} ${b.day}, ${yr}`));
   if (!upcoming.length) return null;
-
   return (
     <section style={{ marginBottom:40 }}>
-      <div style={{ background:"linear-gradient(135deg,#0A1A00,#0D0D0D)", border:"1px solid rgba(110,226,110,0.2)", borderRadius:16, padding:"24px 28px" }}>
+      <div style={{ background:"linear-gradient(135deg,#0A1A00,#0D0D0D)", border:`1px solid ${SEASON.border}`, borderRadius:16, padding:"24px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-          <div style={{ width:8, height:8, borderRadius:"50%", background:"#6EE26E", boxShadow:"0 0 8px #6EE26E" }} />
-          <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.1rem", letterSpacing:"0.1em", color:"#6EE26E" }}>THIS WEEK</span>
-          <span style={{ fontSize:"0.72rem", color:G.gray, marginLeft:4 }}>{upcoming.length} event{upcoming.length > 1 ? "s" : ""} coming up</span>
+          <div style={{ width:8, height:8, borderRadius:"50%", background:SEASON.accent, boxShadow:`0 0 8px ${SEASON.accent}` }} />
+          <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.1rem", letterSpacing:"0.1em", color:SEASON.accent2 }}>THIS WEEK</span>
+          <span style={{ fontSize:"0.72rem", color:G.gray, marginLeft:4 }}>{upcoming.length} event{upcoming.length>1?"s":""} coming up</span>
+          <span style={{ marginLeft:"auto", fontSize:"0.68rem", color:SEASON.accent2, fontWeight:500 }}>{SEASON.tag}</span>
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {upcoming.map(ev => {
@@ -312,13 +418,13 @@ function Hero({ onSelectMember }) {
   return (
     <div style={{ background:G.black, position:"relative", overflow:"hidden", minHeight:300, display:"flex", flexDirection:"column" }}>
       <div style={{ position:"absolute", fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(180px,38vw,520px)", color:"transparent", WebkitTextStroke:"1.5px rgba(212,168,67,0.11)", lineHeight:1, right:-30, top:-80, pointerEvents:"none", userSelect:"none" }}>8</div>
-      <div style={{ position:"absolute", bottom:0, left:0, right:0, height:3, background:"linear-gradient(90deg,transparent,#D4A843,transparent)" }} />
+      <div style={{ position:"absolute", bottom:0, left:0, right:0, height:3, background:`linear-gradient(90deg,transparent,${G.gold},transparent)` }} />
       <div style={{ position:"relative", maxWidth:1100, margin:"0 auto", padding:"clamp(32px,5vw,56px) clamp(20px,4vw,40px) clamp(28px,4vw,48px)", width:"100%", flex:1, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
         <div style={{ position:"absolute", top:"clamp(16px,3vw,36px)", right:"clamp(20px,4vw,40px)", textAlign:"right" }}>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(1.8rem,4vw,2.8rem)", color:G.gold, lineHeight:1 }}>{now.getDate()}</div>
           <div style={{ fontSize:"0.7rem", color:G.gray, letterSpacing:"0.08em" }}>{now.toLocaleDateString("en-US",{month:"short",year:"numeric"}).toUpperCase()}</div>
         </div>
-        <div style={{ fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", color:G.gold, fontWeight:500, marginBottom:10 }}>Est. 2008 · Family Hub</div>
+        <div style={{ fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", color:G.gold, fontWeight:500, marginBottom:10 }}>Est. 2008 · Family Hub · {SEASON.name} Season</div>
         <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(3.5rem,9vw,7.5rem)", lineHeight:0.92, letterSpacing:"0.02em" }}>
           <span style={{ color:G.gold }}>8N</span>Motion
         </h1>
@@ -328,7 +434,8 @@ function Hero({ onSelectMember }) {
         </p>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginTop:28 }}>
           {CREW.map(m => (
-            <span key={m.name} onClick={() => onSelectMember(m.name)} style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:100, padding:"5px 14px", fontSize:"0.78rem", color:G.goldL, display:"flex", alignItems:"center", gap:6, cursor:"pointer", transition:"all 0.2s" }}
+            <span key={m.name} onClick={() => onSelectMember(m.name)}
+              style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:100, padding:"5px 14px", fontSize:"0.78rem", color:G.goldL, display:"flex", alignItems:"center", gap:6, cursor:"pointer", transition:"all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.background="rgba(212,168,67,0.18)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.5)"; }}
               onMouseLeave={e => { e.currentTarget.style.background="rgba(212,168,67,0.08)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.2)"; }}
             >
@@ -368,18 +475,84 @@ function Nav({ view, setView, onAdmin }) {
   );
 }
 
+// ─── PROFILE MEDIA GALLERY ────────────────────────────────────────────────────
+function ProfileMediaGallery({ name, p }) {
+  const [expanded, setExpanded] = useState(null);
+  const placeholders = Array(4).fill(null);
+  const artPlaceholders = Array(3).fill(null);
+
+  const getEmbedUrl = (item) => {
+    if (!item?.url) return null;
+    if (item.type === "youtube") {
+      const id = item.url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
+      return id ? `https://www.youtube.com/embed/${id}?autoplay=1` : null;
+    }
+    return null;
+  };
+
+  return (
+    <div style={{ background:G.black2, border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"24px 28px", marginBottom:16 }}>
+      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", letterSpacing:"0.06em", color:G.gold, marginBottom:6 }}>Photos and Videos</div>
+      <p style={{ fontSize:"0.72rem", color:G.gray, marginBottom:16, fontWeight:300 }}>
+        Drop files into <code style={{ background:"rgba(255,255,255,0.06)", padding:"1px 5px", borderRadius:4 }}>public/photos/{name.toLowerCase()}/</code> to populate this gallery.
+      </p>
+
+      {/* Artwork section for Davian */}
+      {p.hasArtwork && (
+        <>
+          <div style={{ fontSize:"0.78rem", color:"#7AADFF", fontWeight:600, marginBottom:10, letterSpacing:"0.06em", textTransform:"uppercase" }}>🎨 Davian's Artwork</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:8, marginBottom:20 }}>
+            {artPlaceholders.map((_, i) => (
+              <div key={i} style={{ aspectRatio:"1", borderRadius:10, background:"linear-gradient(135deg,#0A1020,#1A2030)", border:"1px solid rgba(122,173,255,0.2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6 }}>
+                <span style={{ fontSize:"1.4rem", opacity:0.25 }}>🎨</span>
+                <span style={{ fontSize:"0.62rem", color:"rgba(122,173,255,0.4)", textAlign:"center" }}>Artwork {i+1}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Block Party section for Kourtney */}
+      {name === "Kourtney" && (
+        <div style={{ background:G.black2, border:"1px solid rgba(240,204,114,0.25)", borderRadius:14, padding:"24px 28px", marginBottom:16 }}>
+          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", letterSpacing:"0.06em", color:G.goldL, marginBottom:6 }}>🌍 World Cup Block Party — June 9, 2026</div>
+          <p style={{ fontSize:"0.78rem", color:G.gray, marginBottom:14, fontWeight:300, lineHeight:1.6 }}>UPS x Atlanta Unboxed x Showcase Atlanta. Kourtney brought the World Cup to Atlanta communities. The 8NMotion kids were there for every moment.</p>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))", gap:8 }}>
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} style={{ aspectRatio:"1", borderRadius:8, background:"linear-gradient(135deg,#0A0A1A,#1A1A2A)", border:"1px solid rgba(240,204,114,0.15)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4 }}>
+                <span style={{ fontSize:"1.2rem", opacity:0.25 }}>📸</span>
+                <span style={{ fontSize:"0.58rem", color:"rgba(240,204,114,0.3)" }}>Photo {i}</span>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize:"0.7rem", color:G.gray, marginTop:10, fontWeight:300 }}>Add photos to <code style={{ background:"rgba(255,255,255,0.06)", padding:"1px 5px", borderRadius:4 }}>public/photos/blockparty/</code></p>
+        </div>
+      )}
+
+      {/* Photos and videos grid */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:8 }}>
+        {placeholders.map((_, i) => (
+          <div key={i} style={{ aspectRatio:"1", borderRadius:10, background:"linear-gradient(135deg,#1A1200,#2A2000)", border:`1px solid ${p.color}20`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6 }}>
+            <span style={{ fontSize:"1.4rem", opacity:0.25 }}>{i % 2 === 0 ? p.icon : "🎥"}</span>
+            <span style={{ fontSize:"0.62rem", color:`${p.color}40`, textAlign:"center" }}>{i % 2 === 0 ? "Add Photo" : "Add Video"}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── PROFILE PAGE ─────────────────────────────────────────────────────────────
 function ProfilePage({ name, onBack, messages, onAddMessage }) {
   const p    = PROFILES[name];
   const crew = CREW.find(c => c.name === name);
   const [msgForm, setMsgForm] = useState({ from:"", text:"" });
   const [msgSent, setMsgSent] = useState(false);
-
   if (!p) return null;
 
   const handleSendMsg = () => {
     if (!msgForm.from.trim() || !msgForm.text.trim()) return;
-    onAddMessage({ from: msgForm.from, text: msgForm.text, ts: new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) });
+    onAddMessage({ from:msgForm.from, text:msgForm.text, ts:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) });
     setMsgForm({ from:"", text:"" });
     setMsgSent(true);
     setTimeout(() => setMsgSent(false), 3000);
@@ -387,12 +560,11 @@ function ProfilePage({ name, onBack, messages, onAddMessage }) {
 
   return (
     <div style={{ maxWidth:800, margin:"0 auto", padding:"clamp(24px,4vw,48px) clamp(20px,4vw,40px)" }}>
-      {/* Back */}
       <button onClick={onBack} style={{ background:"none", border:"1px solid rgba(212,168,67,0.25)", borderRadius:100, color:G.gold, padding:"7px 18px", fontSize:"0.78rem", cursor:"pointer", fontFamily:"inherit", marginBottom:28, display:"flex", alignItems:"center", gap:8 }}>
         ← Back to Crew
       </button>
 
-      {/* Profile Header */}
+      {/* Header */}
       <div style={{ background:"linear-gradient(160deg,#1A1200,#0D0D0D)", border:`1px solid ${p.color}30`, borderRadius:20, padding:"36px 32px", marginBottom:24, position:"relative", overflow:"hidden" }}>
         <div style={{ position:"absolute", right:20, top:10, fontFamily:"'Bebas Neue',sans-serif", fontSize:"8rem", color:`${p.color}08`, pointerEvents:"none", lineHeight:1 }}>8</div>
         <div style={{ display:"flex", alignItems:"flex-start", gap:20, flexWrap:"wrap" }}>
@@ -406,20 +578,17 @@ function ProfilePage({ name, onBack, messages, onAddMessage }) {
             <p style={{ color:"rgba(250,250,250,0.65)", fontSize:"0.9rem", lineHeight:1.75, fontWeight:300 }}>{p.bio}</p>
           </div>
         </div>
-
-        {/* Deployed banner for Davian */}
         {p.deployed && (
           <div style={{ marginTop:20, background:"rgba(122,173,255,0.08)", border:"1px solid rgba(122,173,255,0.25)", borderRadius:10, padding:"12px 16px", display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontSize:"1.2rem" }}>✈️</span>
             <div>
               <div style={{ fontSize:"0.78rem", color:"#7AADFF", fontWeight:600 }}>Currently Deployed — Venezuela</div>
-              <div style={{ fontSize:"0.74rem", color:G.gray, fontWeight:300 }}>Returns October 2025. Send some love from home!</div>
+              <div style={{ fontSize:"0.74rem", color:G.gray, fontWeight:300 }}>Send some love from home using the message wall below!</div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Sports */}
       {p.sports.length > 0 && (
         <div style={{ background:G.black2, border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"24px 28px", marginBottom:16 }}>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", letterSpacing:"0.06em", color:G.gold, marginBottom:14 }}>Sports</div>
@@ -433,7 +602,6 @@ function ProfilePage({ name, onBack, messages, onAddMessage }) {
         </div>
       )}
 
-      {/* Activities */}
       {p.activities.length > 0 && (
         <div style={{ background:G.black2, border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"24px 28px", marginBottom:16 }}>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", letterSpacing:"0.06em", color:G.gold, marginBottom:14 }}>Activities</div>
@@ -447,7 +615,6 @@ function ProfilePage({ name, onBack, messages, onAddMessage }) {
         </div>
       )}
 
-      {/* Accomplishments */}
       <div style={{ background:G.black2, border:`1px solid ${p.color}25`, borderRadius:14, padding:"24px 28px", marginBottom:16 }}>
         <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", letterSpacing:"0.06em", color:G.gold, marginBottom:14 }}>Accomplishments</div>
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -460,27 +627,14 @@ function ProfilePage({ name, onBack, messages, onAddMessage }) {
         </div>
       </div>
 
-      {/* Photo Gallery */}
-      <div style={{ background:G.black2, border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"24px 28px", marginBottom:16 }}>
-        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", letterSpacing:"0.06em", color:G.gold, marginBottom:14 }}>Photos</div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:8 }}>
-          {[1,2,3,4].map(i => (
-            <div key={i} style={{ aspectRatio:"1", borderRadius:10, background:"linear-gradient(135deg,#1A1200,#2A2000)", border:`1px solid ${p.color}20`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6 }}>
-              <span style={{ fontSize:"1.6rem", opacity:0.25 }}>{p.icon}</span>
-              <span style={{ fontSize:"0.62rem", color:`${p.color}50`, textAlign:"center" }}>Add Photo</span>
-            </div>
-          ))}
-        </div>
-        <p style={{ fontSize:"0.72rem", color:G.gray, marginTop:12, fontWeight:300 }}>Drop photos into <code style={{ background:"rgba(255,255,255,0.06)", padding:"1px 5px", borderRadius:4 }}>public/photos/{name.toLowerCase()}/</code> to populate this gallery.</p>
-      </div>
+      {/* Photos and Videos — everyone except Legend */}
+      {p.hasMedia && <ProfileMediaGallery name={name} p={p} />}
 
       {/* Davian Message Wall */}
       {p.deployed && (
         <div style={{ background:"linear-gradient(135deg,#0A1020,#0D0D0D)", border:"1px solid rgba(122,173,255,0.25)", borderRadius:14, padding:"24px 28px" }}>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", letterSpacing:"0.06em", color:"#7AADFF", marginBottom:6 }}>Messages from Home ✈️</div>
           <p style={{ fontSize:"0.8rem", color:G.gray, marginBottom:20, fontWeight:300 }}>Leave Davian a message. He will see every single one when he gets back. Let him know we are with him.</p>
-
-          {/* Existing messages */}
           {messages.length > 0 && (
             <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
               {messages.map((m,i) => (
@@ -491,15 +645,14 @@ function ProfilePage({ name, onBack, messages, onAddMessage }) {
               ))}
             </div>
           )}
-
           {msgSent ? (
             <div style={{ background:"rgba(110,226,110,0.08)", border:"1px solid rgba(110,226,110,0.2)", borderRadius:10, padding:"14px 16px", textAlign:"center" }}>
               <span style={{ color:"#6EE26E", fontSize:"0.88rem" }}>Message sent! Davian will see it when he gets home. Thank you. 🙏</span>
             </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              <input type="text" placeholder="Your name" value={msgForm.from} onChange={e => setMsgForm(f=>({...f,from:e.target.value}))} style={{ background:"#0D0D0D", border:"1px solid rgba(122,173,255,0.2)", borderRadius:8, padding:"11px 14px", color:G.white, fontSize:"0.88rem", fontFamily:"inherit", outline:"none" }} />
-              <textarea placeholder="Write something for Davian..." value={msgForm.text} onChange={e => setMsgForm(f=>({...f,text:e.target.value}))} style={{ background:"#0D0D0D", border:"1px solid rgba(122,173,255,0.2)", borderRadius:8, padding:"11px 14px", color:G.white, fontSize:"0.88rem", fontFamily:"inherit", outline:"none", resize:"vertical", minHeight:80 }} />
+              <input type="text" placeholder="Your name" value={msgForm.from} onChange={e=>setMsgForm(f=>({...f,from:e.target.value}))} style={{ background:"#0D0D0D", border:"1px solid rgba(122,173,255,0.2)", borderRadius:8, padding:"11px 14px", color:G.white, fontSize:"0.88rem", fontFamily:"inherit", outline:"none" }} />
+              <textarea placeholder="Write something for Davian..." value={msgForm.text} onChange={e=>setMsgForm(f=>({...f,text:e.target.value}))} style={{ background:"#0D0D0D", border:"1px solid rgba(122,173,255,0.2)", borderRadius:8, padding:"11px 14px", color:G.white, fontSize:"0.88rem", fontFamily:"inherit", outline:"none", resize:"vertical", minHeight:80 }} />
               <button onClick={handleSendMsg} disabled={!msgForm.from.trim()||!msgForm.text.trim()} style={{ background:"rgba(122,173,255,0.15)", border:"1px solid rgba(122,173,255,0.35)", color:"#7AADFF", borderRadius:8, padding:"11px 24px", fontWeight:700, fontSize:"0.85rem", cursor:"pointer", fontFamily:"inherit" }}>
                 Send Message to Davian →
               </button>
@@ -518,9 +671,10 @@ function CrewSection({ onSelectMember }) {
       <SectionHead title="The Crew" extra={<span style={{ fontSize:"0.72rem", color:G.gray }}>Tap a card to view profile</span>} />
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))", gap:12 }}>
         {CREW.map(m => (
-          <div key={m.name} onClick={() => onSelectMember(m.name)} style={{ background:G.black2, border:`1px solid rgba(212,168,67,0.3)`, borderRadius:14, padding:"20px 12px 16px", display:"flex", flexDirection:"column", alignItems:"center", gap:10, cursor:"pointer", transition:"all 0.2s" }}
+          <div key={m.name} onClick={() => onSelectMember(m.name)}
+            style={{ background:G.black2, border:`1px solid rgba(212,168,67,0.3)`, borderRadius:14, padding:"20px 12px 16px", display:"flex", flexDirection:"column", alignItems:"center", gap:10, cursor:"pointer", transition:"all 0.2s" }}
             onMouseEnter={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.borderColor=G.gold; }}
-            onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.borderColor=m.wears8?"rgba(212,168,67,0.3)":"rgba(255,255,255,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.3)"; }}
           >
             <div style={{ position:"relative" }}>
               <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#242424,#2E2800)", border:`2px solid ${G.gold}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.4rem" }}>{m.icon}</div>
@@ -560,19 +714,34 @@ function ParentsSection() {
 
 // ─── EVENTS SECTION ───────────────────────────────────────────────────────────
 function EventsSection({ events }) {
+  const members = ["All", ...CREW.filter(c => c.name !== "Legend" && c.name !== "Kourtney" && c.name !== "Rod").map(c => c.name),"Family"];
+  const [filter, setFilter] = useState("All");
+
   const sorted = [...events].sort((a,b) => {
     const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const mi = mo.indexOf(a.month) - mo.indexOf(b.month);
     return mi !== 0 ? mi : parseInt(a.day) - parseInt(b.day);
   });
+
+  const filtered = filter === "All" ? sorted : sorted.filter(ev => {
+    if (filter === "Family") return ev.tag === "family";
+    return ev.title.toLowerCase().includes(filter.toLowerCase()) || (ev.member && ev.member === filter);
+  });
+
   return (
     <section style={{ marginBottom:56 }}>
       <SectionHead title="Upcoming Events" />
-      {sorted.length === 0
-        ? <p style={{ color:G.gray, fontSize:"0.9rem" }}>No upcoming events. Add some from the Update Site panel!</p>
+      {/* Filter chips */}
+      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:16 }}>
+        {members.map(m => (
+          <button key={m} onClick={() => setFilter(m)} style={{ background:filter===m?`rgba(212,168,67,0.2)`:"rgba(255,255,255,0.04)", border:`1px solid ${filter===m?"rgba(212,168,67,0.5)":"rgba(255,255,255,0.1)"}`, borderRadius:100, padding:"5px 14px", color:filter===m?G.gold:G.gray, fontSize:"0.72rem", cursor:"pointer", fontFamily:"inherit", fontWeight:filter===m?600:400, transition:"all 0.2s" }}>{m}</button>
+        ))}
+      </div>
+      {filtered.length === 0
+        ? <p style={{ color:G.gray, fontSize:"0.9rem" }}>No events found. Add some from the Update Site panel!</p>
         : (
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {sorted.map(ev => {
+            {filtered.map(ev => {
               const t = TAG_STYLES[ev.tag] || TAG_STYLES.family;
               return (
                 <div key={ev.id} style={{ background:G.black2, border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"14px 18px", display:"flex", alignItems:"flex-start", gap:16 }}>
@@ -599,13 +768,10 @@ function EventsSection({ events }) {
 function Spotlight({ spotlights }) {
   const [idx,    setIdx]    = useState(() => Math.floor(Math.random() * spotlights.length));
   const [fading, setFading] = useState(false);
-
   const go = (i) => { setFading(true); setTimeout(() => { setIdx(i); setFading(false); }, 250); };
-  useInterval(() => go((idx + 1) % spotlights.length), 6000);
-
+  useInterval(() => go((idx+1) % spotlights.length), 6000);
   if (!spotlights.length) return null;
   const s = spotlights[idx % spotlights.length];
-
   return (
     <section style={{ marginBottom:56 }}>
       <SectionHead title="Spotlight" extra={
@@ -641,7 +807,7 @@ function Spotlight({ spotlights }) {
 
 // ─── UPDATES FEED ─────────────────────────────────────────────────────────────
 function UpdatesFeed({ updates }) {
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "https://8nmotion.com";
+  const shareUrl = typeof window !== "undefined" ? window.location.origin : "https://8nmotion.com";
   return (
     <section style={{ marginBottom:56 }}>
       <SectionHead title="Family Updates" />
@@ -651,14 +817,13 @@ function UpdatesFeed({ updates }) {
           <div style={{ flex:1 }}>
             <div style={{ fontSize:"0.76rem", color:G.gray, marginBottom:5 }}><strong style={{ color:G.goldL, fontWeight:500 }}>{u.category}</strong> · {u.time}</div>
             <div style={{ fontSize:"0.9rem", lineHeight:1.7, color:"rgba(250,250,250,0.75)", fontWeight:300, marginBottom:10 }}>{u.text}</div>
-            {/* Share buttons */}
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               {[
                 { label:"Share on X", color:"#1DA1F2", url:`https://twitter.com/intent/tweet?text=${encodeURIComponent(u.category+" update from 8NMotion!")}&url=${encodeURIComponent(shareUrl)}` },
                 { label:"Share on Facebook", color:"#1877F2", url:`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}` },
                 { label:"Copy Link", color:G.gold, copy:true },
               ].map((btn,i) => (
-                <button key={i} onClick={() => { if (btn.copy) { navigator.clipboard.writeText(shareUrl); } else { window.open(btn.url,"_blank"); } }} style={{ background:`${btn.color}15`, border:`1px solid ${btn.color}35`, color:btn.color, borderRadius:100, padding:"4px 12px", fontSize:"0.68rem", cursor:"pointer", fontFamily:"inherit", fontWeight:500, letterSpacing:"0.04em" }}>
+                <button key={i} onClick={() => { if(btn.copy){navigator.clipboard.writeText(shareUrl);}else{window.open(btn.url,"_blank");} }} style={{ background:`${btn.color}15`, border:`1px solid ${btn.color}35`, color:btn.color, borderRadius:100, padding:"4px 12px", fontSize:"0.68rem", cursor:"pointer", fontFamily:"inherit", fontWeight:500, letterSpacing:"0.04em" }}>
                   {btn.label}
                 </button>
               ))}
@@ -689,7 +854,7 @@ function PhotosSection() {
       <SectionHead title="Family Moments" />
       <div style={{ background:"rgba(212,168,67,0.04)", border:"1px solid rgba(212,168,67,0.1)", borderRadius:12, padding:"16px 20px", marginBottom:20 }}>
         <p style={{ fontSize:"0.8rem", color:G.gray, lineHeight:1.7 }}>
-          📸 <strong style={{ color:G.goldL }}>To add photos:</strong> Drop image files into <code style={{ background:"rgba(255,255,255,0.08)", padding:"1px 6px", borderRadius:4 }}>public/photos/</code> in your project and use the Update Site panel to link them.
+          📸 <strong style={{ color:G.goldL }}>To add photos:</strong> Drop image files into <code style={{ background:"rgba(255,255,255,0.08)", padding:"1px 6px", borderRadius:4 }}>public/photos/</code> in your project and let Claude know what was uploaded.
         </p>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:10 }}>
@@ -709,7 +874,6 @@ function SubscribeForm() {
   const [form,    setForm]    = useState({ firstName:"", lastName:"", email:"" });
   const [status,  setStatus]  = useState(null);
   const [message, setMessage] = useState("");
-
   const handleSubmit = async () => {
     if (!form.email.trim()) return;
     setStatus("loading");
@@ -720,7 +884,6 @@ function SubscribeForm() {
       else              { setStatus("error");   setMessage(data.error || "Something went wrong."); }
     } catch { setStatus("error"); setMessage("Connection error. Please try again."); }
   };
-
   if (status === "success") return (
     <div style={{ background:"linear-gradient(135deg,#0A1A00,#0D0D0D)", border:"1px solid rgba(110,226,110,0.3)", borderRadius:16, padding:"40px 32px", textAlign:"center", marginBottom:56 }}>
       <div style={{ fontSize:"2.5rem", marginBottom:12 }}>🎉</div>
@@ -728,12 +891,11 @@ function SubscribeForm() {
       <p style={{ color:"rgba(250,250,250,0.6)", fontSize:"0.9rem", fontWeight:300 }}>{message} You will get an email every time 8NMotion posts a new update.</p>
     </div>
   );
-
   return (
     <section style={{ marginBottom:56 }}>
       <SectionHead title="Stay in the Loop" />
       <div style={{ background:"linear-gradient(135deg,#1A1200,#0D0D0D)", border:"1px solid rgba(212,168,67,0.25)", borderRadius:16, padding:"36px clamp(20px,4vw,40px)" }}>
-        <p style={{ color:"rgba(250,250,250,0.6)", fontSize:"0.9rem", fontWeight:300, marginBottom:24, lineHeight:1.7 }}>Subscribe to get email updates every time we post something new. Games, milestones, family news, and everything 8NMotion. No spam, just family.</p>
+        <p style={{ color:"rgba(250,250,250,0.6)", fontSize:"0.9rem", fontWeight:300, marginBottom:24, lineHeight:1.7 }}>Subscribe to get email updates every time we post something new. No spam, just family.</p>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginBottom:12 }}>
           <input type="text" placeholder="First name" value={form.firstName} onChange={e=>setForm(f=>({...f,firstName:e.target.value}))} style={{ background:"#0D0D0D", border:"1px solid rgba(212,168,67,0.2)", borderRadius:8, padding:"12px 16px", color:G.white, fontSize:"0.9rem", fontFamily:"inherit", outline:"none" }} />
           <input type="text" placeholder="Last name" value={form.lastName} onChange={e=>setForm(f=>({...f,lastName:e.target.value}))} style={{ background:"#0D0D0D", border:"1px solid rgba(212,168,67,0.2)", borderRadius:8, padding:"12px 16px", color:G.white, fontSize:"0.9rem", fontFamily:"inherit", outline:"none" }} />
@@ -753,7 +915,7 @@ function SubscribeForm() {
 function PasswordGate({ onSuccess }) {
   const [val, setVal] = useState("");
   const [err, setErr] = useState(false);
-  const check = () => { if (val===ADMIN_PASSWORD) onSuccess(); else { setErr(true); setVal(""); setTimeout(()=>setErr(false),1800); } };
+  const check = () => { if(val===ADMIN_PASSWORD) onSuccess(); else { setErr(true); setVal(""); setTimeout(()=>setErr(false),1800); } };
   return (
     <div style={{ maxWidth:420, margin:"80px auto", padding:"0 24px" }}>
       <div style={{ background:G.black2, border:"1px solid rgba(212,168,67,0.25)", borderRadius:16, padding:36, textAlign:"center" }}>
@@ -769,7 +931,7 @@ function PasswordGate({ onSuccess }) {
 }
 
 // ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
-function AdminPanel({ siteData, setSiteData, onSave, mediaItems, setMediaItems, onSaveMedia }) {
+function AdminPanel({ siteData, setSiteData, onSave, mediaItems, setMediaItems, onSaveMedia, visitCount }) {
   const [input,      setInput]      = useState("");
   const [loading,    setLoading]    = useState(false);
   const [log,        setLog]        = useState([{ msg:"Ready. Type your update below.", type:"info", ts:"" }]);
@@ -779,8 +941,7 @@ function AdminPanel({ siteData, setSiteData, onSave, mediaItems, setMediaItems, 
   const [notifying,  setNotifying]  = useState(false);
   const logRef = useRef(null);
 
-  useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [log]);
-
+  useEffect(() => { if(logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [log]);
   const addLog = (msg, type="info") => setLog(l => [...l, { msg, type, ts:new Date().toLocaleTimeString() }]);
 
   const handleNotify = async () => {
@@ -792,16 +953,16 @@ function AdminPanel({ siteData, setSiteData, onSave, mediaItems, setMediaItems, 
       const data = await res.json();
       if (data.success) { addLog(`Email sent! ${data.message}`,"success"); setNotifySubj(""); setNotifyMsg(""); }
       else addLog(`Email error: ${data.error}`,"error");
-    } catch (err) { addLog(`Email error: ${err.message}`,"error"); }
+    } catch(err) { addLog(`Email error: ${err.message}`,"error"); }
     setNotifying(false);
   };
 
   const examples = [
     "Add a flag football game for Khari on July 12th at 10am at East Cobb Park",
     "Add a spotlight for Raelyn — she won her basketball tournament this weekend",
-    "Add a YouTube video to the media strip: https://youtube.com/watch?v=xyz — Bailee's state meet highlights",
-    "Add an Instagram post to the media strip: https://instagram.com/p/xyz — Atlanta Unboxed launch event",
-    "Add Kourtney's FIFA World Cup event details for July 15th at State Farm Arena",
+    "Add a YouTube video to the media strip: https://youtube.com/watch?v=xyz — Bailee tournament highlights",
+    "Add an Instagram post to the media strip: https://instagram.com/p/xyz — Atlanta Unboxed event",
+    "Bailee's softball tournament starts July 15th in Viera FL — add to events",
   ];
 
   const handleUpdate = async () => {
@@ -809,26 +970,24 @@ function AdminPanel({ siteData, setSiteData, onSave, mediaItems, setMediaItems, 
     const userMsg = input.trim();
     setInput(""); setLoading(true);
     addLog(`You: "${userMsg}"`,"user");
-
     const systemPrompt = `You are the update engine for the 8NMotion family website.
-FAMILY: Rod (Dad, CNA, Pharod Thomas Photography), Kourtney (Mom, UPS, Atlanta Unboxed x Showcase Atlanta x Renee Montgomery), Davian (Air Force, deployed Venezuela until Oct, "The Prince"), Bailee (11th grade, softball: Impact Gold ATL + Hillgrove, track: Hillgrove + Peak Performance South, GHSA State 8th All American, "BeautMode"), Raelyn (6th grade, basketball+track+flag football, artist, "Rae of Sunshine"), Blaize (1st grade, flag football+softball+track+gymnastics, golden bday Aug 6, "Litty"), Khari (Kindergarten, brother, #8), Legend (fur sibling).
-Spotlight order: Davian, Bailee, Raelyn, Blaize, Khari. No em dashes. Fun tone.
-CURRENT DATA: ${JSON.stringify(siteData)}
-CURRENT MEDIA: ${JSON.stringify(mediaItems)}
-Return ONLY valid compact JSON (no markdown, no backticks, no extra spaces):
+FAMILY: Rod (Dad, CNA, Pharod Thomas Photography), Kourtney (Mom, UPS, Atlanta Unboxed x Showcase Atlanta x Renee Montgomery), Davian (Air Force, deployed Venezuela, "The Prince"), Bailee (11th grade, softball+track, GHSA All American, "BeautMode"), Raelyn (6th grade, basketball+track+flag football, artist, "Rae of Sunshine"), Blaize (1st grade, 4 sports, golden bday Aug 6 2026, "Litty"), Khari (Kindergarten, brother, with family through Oct 2026, #8), Legend (fur sibling).
+Spotlight order: Davian, Bailee, Raelyn, Blaize, Khari. No em dashes. Fun tone. Current year is 2026.
+CURRENT DATA:${JSON.stringify(siteData)}
+CURRENT MEDIA:${JSON.stringify(mediaItems)}
+Return ONLY compact valid JSON (no markdown, no backticks):
 {"action":"summary","events":[...only if changed...],"spotlights":[...only if changed...],"updates":[...only if changed...],"media":[...only if changed...]}
-Only include sections that changed. Keep all existing items unless told to remove.
-Event: id,month(3-letter),day(2-char),title,sub,tag(track/sports/school/family/special)
+Only include sections that changed. Keep all existing items unless told to remove. New items id=max+1.
+For media: newest items should have higher ids so they appear first in the strip.
+Event: id,month(3-letter),day(2-char string),title,sub,tag(track/sports/school/family/special)
 Spotlight: id,icon,label,name,title,body,stats([{num,lbl}])
 Update: id,icon,category,time,text
 Media: id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(optional)`;
-
     try {
       const res  = await fetch("/.netlify/functions/anthropic", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:2500, system:systemPrompt, messages:[{role:"user",content:userMsg}] }) });
       const data = await res.json();
       const raw  = data.content?.find(b=>b.type==="text")?.text || "";
       if (!raw) { addLog(`API error: ${JSON.stringify(data).slice(0,200)}`,"error"); setLoading(false); return; }
-
       let parsed;
       try {
         const cleaned = raw.replace(/```json|```/g,"").trim();
@@ -836,16 +995,12 @@ Media: id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(
         if (start===-1||end===-1) throw new Error("No JSON found");
         parsed = JSON.parse(cleaned.slice(start,end+1));
       } catch(e) { addLog(`Parse error: ${e.message}`,"error"); if(raw) addLog(`Preview: ${raw.slice(0,200)}`,"info"); setLoading(false); return; }
-
       const newData = {...siteData};
       if (parsed.events)     newData.events     = parsed.events;
       if (parsed.spotlights) newData.spotlights = parsed.spotlights;
       if (parsed.updates)    newData.updates    = parsed.updates;
       setSiteData(newData); onSave(newData);
-      if (parsed.media) {
-        setMediaItems(parsed.media);
-        onSaveMedia(parsed.media);
-      }
+      if (parsed.media) { setMediaItems(parsed.media); onSaveMedia(parsed.media); }
       addLog(`Done: ${parsed.action||"Site updated!"}`,"success");
     } catch(err) { addLog(`Error: ${err.message}`,"error"); }
     setLoading(false);
@@ -861,7 +1016,11 @@ Media: id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(
             <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.8rem", letterSpacing:"0.06em", color:G.gold }}>Update Site Panel</h2>
             <p style={{ fontSize:"0.82rem", color:G.gray, marginTop:4, fontWeight:300 }}>Type what you want to change in plain English. AI handles the rest.</p>
           </div>
-          <button onClick={() => { setSiteData({events:DEFAULT_EVENTS,spotlights:DEFAULT_SPOTLIGHTS,updates:DEFAULT_UPDATES}); addLog("Site reset to defaults.","info"); }} style={{ background:"none", border:"1px solid rgba(255,100,100,0.3)", color:"rgba(255,100,100,0.7)", borderRadius:8, padding:"7px 16px", cursor:"pointer", fontSize:"0.75rem", fontFamily:"inherit" }}>Reset to defaults</button>
+          {/* Visitor Counter */}
+          <div style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:12, padding:"12px 20px", textAlign:"center" }}>
+            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.8rem", color:G.gold, lineHeight:1 }}>{visitCount.toLocaleString()}</div>
+            <div style={{ fontSize:"0.65rem", color:G.gray, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:2 }}>Site Visits</div>
+          </div>
         </div>
         <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:20 }}>
           <div>
@@ -894,7 +1053,7 @@ Media: id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(
           <div style={{ background:"rgba(212,168,67,0.04)", border:"1px solid rgba(212,168,67,0.1)", borderRadius:10, padding:"16px 20px" }}>
             <div style={{ fontSize:"0.75rem", letterSpacing:"0.06em", textTransform:"uppercase", color:G.gold, marginBottom:10, fontWeight:500 }}>What you can update</div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:10 }}>
-              {[["📅 Events","Add, edit, or remove games, meets, school events, celebrations"],["⭐ Spotlights","Feature any family member's accomplishments or milestones"],["📢 Updates","Post news, shoutouts, or announcements to the family feed"]].map(([t,d])=>(
+              {[["📅 Events","Add, edit, or remove games, meets, school events, celebrations"],["⭐ Spotlights","Feature any family member's accomplishments or milestones"],["📢 Updates","Post news, shoutouts, or announcements to the family feed"],["🎬 Media Strip","Add photos, YouTube, Instagram, or TikTok to the scrolling strip"]].map(([t,d])=>(
                 <div key={t}><div style={{ fontSize:"0.82rem", color:G.white, fontWeight:500, marginBottom:3 }}>{t}</div><div style={{ fontSize:"0.75rem", color:G.gray, fontWeight:300, lineHeight:1.5 }}>{d}</div></div>
               ))}
             </div>
@@ -922,23 +1081,24 @@ Media: id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <div style={{ background:G.black2, borderTop:"1px solid rgba(212,168,67,0.12)", padding:"clamp(24px,4vw,36px) 40px", textAlign:"center" }}>
+    <div style={{ background:G.black2, borderTop:`1px solid ${SEASON.border}`, padding:"clamp(24px,4vw,36px) 40px", textAlign:"center" }}>
       <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"2.4rem", letterSpacing:"0.1em", color:G.gold, marginBottom:6 }}>8NMOTION</div>
       <p style={{ fontFamily:"'Lora',serif", fontStyle:"italic", fontSize:"0.95rem", color:G.gold, marginBottom:6 }}>Infinite Love. Endless Motion.</p>
-      <p style={{ fontSize:"0.78rem", color:G.gray, fontWeight:300, letterSpacing:"0.04em" }}>Est. 2008 · Share the link, not the texts.</p>
+      <p style={{ fontSize:"0.78rem", color:G.gray, fontWeight:300, letterSpacing:"0.04em" }}>Est. 2008 · {SEASON.name} Season · Share the link, not the texts.</p>
     </div>
   );
 }
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view,         setView]         = useState("home");
-  const [authed,       setAuthed]       = useState(false);
-  const [loaded,       setLoaded]       = useState(false);
-  const [profileOpen,  setProfileOpen]  = useState(null);
-  const [siteData,     setSiteData]     = useState({ events:DEFAULT_EVENTS, spotlights:DEFAULT_SPOTLIGHTS, updates:DEFAULT_UPDATES });
-  const [mediaItems,   setMediaItems]   = useState(DEFAULT_MEDIA);
-  const [davianMsgs,   setDavianMsgs]   = useState([]);
+  const [view,        setView]        = useState("home");
+  const [authed,      setAuthed]      = useState(false);
+  const [loaded,      setLoaded]      = useState(false);
+  const [profileOpen, setProfileOpen] = useState(null);
+  const [siteData,    setSiteData]    = useState({ events:DEFAULT_EVENTS, spotlights:DEFAULT_SPOTLIGHTS, updates:DEFAULT_UPDATES });
+  const [mediaItems,  setMediaItems]  = useState(DEFAULT_MEDIA);
+  const [davianMsgs,  setDavianMsgs]  = useState([]);
+  const [visitCount,  setVisitCount]  = useState(0);
 
   useEffect(() => {
     try {
@@ -948,6 +1108,10 @@ export default function App() {
       if (msgs) setDavianMsgs(JSON.parse(msgs));
       const media = localStorage.getItem(MEDIA_KEY);
       if (media) setMediaItems(JSON.parse(media));
+      // Visitor counter
+      const visits = parseInt(localStorage.getItem(VISITS_KEY) || "0") + 1;
+      localStorage.setItem(VISITS_KEY, visits);
+      setVisitCount(visits);
     } catch {}
     setLoaded(true);
   }, []);
@@ -961,8 +1125,6 @@ export default function App() {
     try { localStorage.setItem(MESSAGES_KEY, JSON.stringify(updated)); } catch {}
   };
 
-  const openAdmin = () => setView("admin");
-
   if (!loaded) return (
     <div style={{ background:G.black, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
       <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"4rem", color:G.gold, opacity:0.4 }}>8NM</div>
@@ -974,17 +1136,19 @@ export default function App() {
   return (
     <div style={{ fontFamily:"'DM Sans',sans-serif", background:G.black, color:G.white, minHeight:"100vh", overflowX:"hidden" }}>
       <Hero onSelectMember={setProfileOpen} />
-      <Nav view={view} setView={(v) => { setView(v); setProfileOpen(null); }} onAdmin={openAdmin} />
-      {(view === "home" || view === "media") && <MediaStrip media={mediaItems} />}
+      <Nav view={view} setView={(v) => { setView(v); setProfileOpen(null); }} onAdmin={() => setView("admin")} />
+      {(view==="home"||view==="media") && <MediaStrip media={mediaItems} />}
 
       {view === "admin" ? (
         authed
-          ? <AdminPanel siteData={siteData} setSiteData={setSiteData} onSave={handleSave} mediaItems={mediaItems} setMediaItems={setMediaItems} onSaveMedia={handleSaveMedia} />
+          ? <AdminPanel siteData={siteData} setSiteData={setSiteData} onSave={handleSave} mediaItems={mediaItems} setMediaItems={setMediaItems} onSaveMedia={handleSaveMedia} visitCount={visitCount} />
           : <PasswordGate onSuccess={() => setAuthed(true)} />
       ) : profileOpen ? (
         <ProfilePage name={profileOpen} onBack={() => setProfileOpen(null)} messages={davianMsgs} onAddMessage={handleAddMessage} />
       ) : (
         <div style={{ maxWidth:1100, margin:"0 auto", padding:"clamp(32px,5vw,56px) clamp(20px,4vw,40px)" }}>
+          {showSection("home")    && <BlaizeCountdown />}
+          {showSection("home")    && <RotatingQuote />}
           {showSection("home")    && <ThisWeek events={siteData.events} />}
           {showSection("crew")    && <CrewSection onSelectMember={setProfileOpen} />}
           {showSection("parents") && <ParentsSection />}
@@ -1000,7 +1164,6 @@ export default function App() {
           {view==="home"          && <SubscribeForm />}
         </div>
       )}
-
       <Footer />
     </div>
   );
