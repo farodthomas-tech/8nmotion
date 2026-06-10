@@ -349,7 +349,12 @@ function AtlantaUnboxedFeature() {
             </p>
             {/* Photo placeholders */}
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))", gap:8 }}>
-              {[1,2,3,4,5,6].map(i => (
+              {["IMG_0038 (2).jpg","IMG_0073.jpg"].map((file,i) => (
+                <div key={i} style={{ aspectRatio:"1", borderRadius:8, overflow:"hidden", border:"1px solid rgba(240,204,114,0.2)" }}>
+                  <img src={`/photos/blockparty/${file}`} alt={`Block Party ${i+1}`} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                </div>
+              ))}
+              {[3,4,5,6].map(i => (
                 <div key={i} style={{ aspectRatio:"1", borderRadius:8, background:"linear-gradient(135deg,#0A0A1A,#1A1A2A)", border:"1px solid rgba(240,204,114,0.15)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4 }}>
                   <span style={{ fontSize:"1.2rem", opacity:0.25 }}>📸</span>
                   <span style={{ fontSize:"0.58rem", color:"rgba(240,204,114,0.3)" }}>Photo {i}</span>
@@ -518,7 +523,12 @@ function ProfileMediaGallery({ name, p }) {
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.2rem", letterSpacing:"0.06em", color:G.goldL, marginBottom:6 }}>🌍 World Cup Block Party — June 9, 2026</div>
           <p style={{ fontSize:"0.78rem", color:G.gray, marginBottom:14, fontWeight:300, lineHeight:1.6 }}>UPS x Atlanta Unboxed x Showcase Atlanta. Kourtney brought the World Cup to Atlanta communities. The 8NMotion kids were there for every moment.</p>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))", gap:8 }}>
-            {[1,2,3,4,5,6].map(i => (
+            {["IMG_0038 (2).jpg","IMG_0073.jpg"].map((file,i) => (
+              <div key={i} style={{ aspectRatio:"1", borderRadius:8, overflow:"hidden", border:"1px solid rgba(240,204,114,0.2)" }}>
+                <img src={`/photos/blockparty/${file}`} alt={`Block Party ${i+1}`} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+              </div>
+            ))}
+            {[3,4,5,6].map(i => (
               <div key={i} style={{ aspectRatio:"1", borderRadius:8, background:"linear-gradient(135deg,#0A0A1A,#1A1A2A)", border:"1px solid rgba(240,204,114,0.15)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4 }}>
                 <span style={{ fontSize:"1.2rem", opacity:0.25 }}>📸</span>
                 <span style={{ fontSize:"0.58rem", color:"rgba(240,204,114,0.3)" }}>Photo {i}</span>

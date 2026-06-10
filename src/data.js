@@ -119,7 +119,9 @@ export const ATLANTA_UNBOXED = {
 
 // ─── Default Media Strip ──────────────────────────────────────────────────────
 export const DEFAULT_MEDIA = [
-  { id:8, type:"highlight", icon:"🌍", label:"UPS x World Cup Block Party — June 9, 2026", caption:"Kourtney brought the World Cup to Atlanta communities today. The kids were there. History was made." },
+  { id:10, type:"photo", icon:"🌍", label:"UPS x World Cup Block Party", caption:"Kourtney bringing the World Cup to Atlanta communities. June 9, 2026.", url:"blockparty/IMG_0038 (2).jpg" },
+  { id:9,  type:"photo", icon:"🌍", label:"UPS x World Cup Block Party", caption:"The 8NMotion crew at the Atlanta Unboxed block party. History in the making.", url:"blockparty/IMG_0073.jpg" },
+  { id:8,  type:"highlight", icon:"🌍", label:"UPS x World Cup Block Party — June 9, 2026", caption:"Kourtney brought the World Cup to Atlanta communities today. The kids were there. History was made." },
   { id:1, type:"highlight", icon:"🏆", label:"Bailee — GHSA All American", caption:"8th in the state of Georgia. All American. That is BeautMode." },
   { id:2, type:"highlight", icon:"👸🏾", label:"Atlanta Unboxed x Showcase Atlanta", caption:"Kourtney x UPS x Renee Montgomery. Spotlighting Black owned businesses in Atlanta." },
   { id:3, type:"highlight", icon:"✈️", label:"Davian — Serving Proudly", caption:"The Prince is deployed in Venezuela. Holding it down for the country and the family." },
