@@ -1,29 +1,30 @@
-const { getStore } = require("@netlify/blobs");
-
-const getStore_ = () => getStore({
-  name: "8nmotion-data",
-  siteID: process.env.NETLIFY_SITE_ID || process.env.SITE_ID,
-  token:  process.env.NETLIFY_BLOBS_TOKEN || process.env.TOKEN,
-});
-
 exports.handler = async function (event) {
+  // GET — try to load from blobs, silently return null if not configured
   if (event.httpMethod === "GET") {
     try {
-      const store = getStore_();
+      const { getStore } = require("@netlify/blobs");
+      const store = getStore("8nmotion-data");
       const data  = await store.get("site-data", { type: "json" });
       return {
         statusCode: 200,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         body: JSON.stringify(data || null),
       };
-    } catch (err) {
-      return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    } catch {
+      // Blobs not configured — return null so site uses defaults
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify(null),
+      };
     }
   }
 
+  // POST — try to save, silently ignore if not configured
   if (event.httpMethod === "POST") {
     try {
-      const store = getStore_();
+      const { getStore } = require("@netlify/blobs");
+      const store = getStore("8nmotion-data");
       const body  = JSON.parse(event.body);
       await store.setJSON("site-data", body);
       return {
@@ -31,8 +32,12 @@ exports.handler = async function (event) {
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         body: JSON.stringify({ success: true }),
       };
-    } catch (err) {
-      return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    } catch {
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ success: false, note: "Storage not configured" }),
+      };
     }
   }
 
