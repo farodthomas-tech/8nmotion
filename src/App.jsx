@@ -371,13 +371,13 @@ function Hero({ onSelectMember }) {
           </div>
           {/* Birthday ticket */}
           {showBdayTicket && (
-            <div style={{ background:"linear-gradient(135deg,rgba(240,120,32,0.15),rgba(240,120,32,0.08))", border:"1px solid rgba(240,120,32,0.35)", borderRadius:10, padding:"6px 10px", textAlign:"center" }}>
-              <div style={{ fontSize:"0.9rem" }}>🔥🎂</div>
-              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.72rem", color:"#F0A060", letterSpacing:"0.06em", lineHeight:1.2 }}>
-                {isBlaizeBday ? "HAPPY BIRTHDAY BLAIZE!" : `BLAIZE'S GOLDEN BDAY`}
+            <div style={{ background:"linear-gradient(135deg,rgba(240,120,32,0.18),rgba(240,120,32,0.08))", border:"1px solid rgba(240,120,32,0.45)", borderRadius:12, padding:"8px 12px", textAlign:"center", minWidth:90 }}>
+              <div style={{ fontSize:"1.1rem" }}>🔥🎂</div>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.85rem", color:"#F0A060", letterSpacing:"0.05em", lineHeight:1.3 }}>
+                {isBlaizeBday ? "HAPPY BIRTHDAY BLAIZE!" : "BLAIZE'S GOLDEN BDAY"}
               </div>
               {!isBlaizeBday && (
-                <div style={{ fontSize:"0.6rem", color:"rgba(240,120,32,0.7)", marginTop:2 }}>
+                <div style={{ fontSize:"0.72rem", color:"rgba(240,120,32,0.85)", marginTop:3, fontWeight:600 }}>
                   {days === 1 ? "TOMORROW! 🎉" : `${days} DAYS!`}
                 </div>
               )}
@@ -593,20 +593,20 @@ function CrewSection({ onSelectMember }) {
   return (
     <section style={{ marginBottom:56 }}>
       <SectionHead title="The Crew" extra={<span style={{ fontSize:"0.72rem", color:G.gray }}>Tap a card to view profile</span>} />
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))", gap:12 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:8 }}>
         {CREW.map(m => (
           <div key={m.name} onClick={() => onSelectMember(m.name)}
-            style={{ background:G.black2, border:"1px solid rgba(212,168,67,0.3)", borderRadius:14, padding:"20px 12px 16px", display:"flex", flexDirection:"column", alignItems:"center", gap:10, cursor:"pointer", transition:"all 0.2s" }}
-            onMouseEnter={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.borderColor=G.gold; }}
+            style={{ background:G.black2, border:"1px solid rgba(212,168,67,0.3)", borderRadius:12, padding:"14px 8px 12px", display:"flex", flexDirection:"column", alignItems:"center", gap:7, cursor:"pointer", transition:"all 0.2s" }}
+            onMouseEnter={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.borderColor=G.gold; }}
             onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.3)"; }}
           >
             <div style={{ position:"relative" }}>
-              <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#242424,#2E2800)", border:`2px solid ${G.gold}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.4rem" }}>{m.icon}</div>
-              {m.wears8 && <div style={{ position:"absolute", bottom:-4, right:-4, background:G.gold, color:G.black, fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.65rem", width:18, height:18, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", border:`1px solid ${G.black2}` }}>8</div>}
+              <div style={{ width:42, height:42, borderRadius:"50%", background:"linear-gradient(135deg,#242424,#2E2800)", border:`2px solid ${G.gold}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.1rem" }}>{m.icon}</div>
+              {m.wears8 && <div style={{ position:"absolute", bottom:-3, right:-3, background:G.gold, color:G.black, fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.55rem", width:15, height:15, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", border:`1px solid ${G.black2}` }}>8</div>}
             </div>
-            <div style={{ fontSize:"0.82rem", fontWeight:600, color:G.white, textAlign:"center" }}>{m.name}</div>
-            <div style={{ fontSize:"0.65rem", color:G.gray, textAlign:"center", fontWeight:300, lineHeight:1.5 }}>{m.role}</div>
-            <div style={{ fontSize:"0.62rem", color:"rgba(212,168,67,0.5)", letterSpacing:"0.06em" }}>View Profile →</div>
+            <div style={{ fontSize:"0.72rem", fontWeight:600, color:G.white, textAlign:"center" }}>{m.name}</div>
+            <div style={{ fontSize:"0.55rem", color:G.gray, textAlign:"center", fontWeight:300, lineHeight:1.4 }}>{m.role}</div>
+            <div style={{ fontSize:"0.55rem", color:"rgba(212,168,67,0.5)", letterSpacing:"0.04em" }}>Profile →</div>
           </div>
         ))}
       </div>
@@ -930,6 +930,13 @@ function PhotoUploader() {
       const file = files[i];
       try {
         const { base64, contentType, filename } = await prepareImage(file);
+        const res  = await fetch("/.netlify/functions/uploadphoto", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ folder, filename, data: base64, contentType }),
+        });
+        const data = await res.json();
+        done.push({ name: filename, success: !!data.success, error: data.error });
       } catch (err) {
         done.push({ name: file.name, success: false, error: err.message });
       }
