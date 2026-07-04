@@ -931,13 +931,25 @@ function PhotoUploader() {
       const file = files[i];
       try {
         const { base64, contentType, filename } = await prepareImage(file);
-        const res  = await fetch("/.netlify/functions/uploadphoto", {
+
+        // Upload directly to Cloudinary unsigned upload preset
+        const formData = new FormData();
+        const blob = await fetch(`data:${contentType};base64,${base64}`).then(r => r.blob());
+        formData.append("file", blob, filename);
+        formData.append("upload_preset", "8nmotion");
+        formData.append("folder", `8nmotion/${folder}`);
+
+        const res  = await fetch(`https://api.cloudinary.com/v1_1/rxaenomo/image/upload`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ folder, filename, data: base64, contentType }),
+          body: formData,
         });
         const data = await res.json();
-        done.push({ name: filename, success: !!data.success, error: data.error || `Status ${res.status}` });
+
+        if (data.secure_url) {
+          done.push({ name: filename, success: true, url: data.secure_url });
+        } else {
+          done.push({ name: filename, success: false, error: data.error?.message || "Upload failed" });
+        }
       } catch (err) {
         done.push({ name: file.name, success: false, error: err.message });
       }
@@ -1026,10 +1038,17 @@ function PhotoUploader() {
             </div>
           ))}
           {successCount > 0 && (
-            <p style={{ fontSize:"0.72rem", color:G.gray, marginTop:8, lineHeight:1.5 }}>
-              Photos are live! To display them on profile pages or in the media strip, use the Update Site box above and say something like:<br/>
-              <em style={{ color:G.goldL }}>"Add the photos I just uploaded to the {folder} folder to {folder === "family" ? "the family photos section" : `${folder}'s profile page`}"</em>
-            </p>
+            <div style={{ marginTop:8 }}>
+              <p style={{ fontSize:"0.72rem", color:G.gray, lineHeight:1.6 }}>
+                Photos uploaded to Cloudinary! Tell the Update Site panel to add them, e.g.:<br/>
+                <em style={{ color:G.goldL }}>"Add the photos I just uploaded to the {folder} folder to {folder === "family" ? "the family photos section" : `${folder}'s profile page`}"</em>
+              </p>
+              {results.filter(r=>r.success&&r.url).map((r,i) => (
+                <div key={i} style={{ fontSize:"0.65rem", color:G.gray, marginTop:4, wordBreak:"break-all" }}>
+                  📎 {r.url}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
