@@ -690,28 +690,80 @@ function Spotlight({ spotlights }) {
 
 // ─── UPDATES FEED ─────────────────────────────────────────────────────────────
 function UpdatesFeed({ updates }) {
-  const shareUrl = typeof window!=="undefined" ? window.location.origin : "https://8nmotion.com";
+  const [expanded, setExpanded] = useState(null);
+  const shareUrl = typeof window !== "undefined" ? window.location.origin : "https://8nmotion.com";
+
+  const isNew = (u) => {
+    // Mark first 3 updates as "new" since we don't have real timestamps
+    return updates.indexOf(u) < 3;
+  };
+
   return (
     <section style={{ marginBottom:56 }}>
-      <SectionHead title="Family Updates" />
-      {updates.map(u => (
-        <div key={u.id} style={{ display:"flex", gap:18, padding:"22px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ width:40, height:40, borderRadius:10, background:"rgba(212,168,67,0.1)", border:"1px solid rgba(212,168,67,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.1rem", flexShrink:0 }}>{u.icon}</div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:"0.76rem", color:G.gray, marginBottom:5 }}><strong style={{ color:G.goldL, fontWeight:500 }}>{u.category}</strong> · {u.time}</div>
-            <div style={{ fontSize:"0.9rem", lineHeight:1.7, color:"rgba(250,250,250,0.75)", fontWeight:300, marginBottom:10 }}>{u.text}</div>
-            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-              {[
-                {label:"Share on X",color:"#1DA1F2",url:`https://twitter.com/intent/tweet?text=${encodeURIComponent(u.category+" update from 8NMotion!")}&url=${encodeURIComponent(shareUrl)}`},
-                {label:"Share on Facebook",color:"#1877F2",url:`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`},
-                {label:"Copy Link",color:G.gold,copy:true},
-              ].map((btn,i) => (
-                <button key={i} onClick={() => { if(btn.copy){navigator.clipboard.writeText(shareUrl);}else{window.open(btn.url,"_blank");} }} style={{ background:`${btn.color}15`, border:`1px solid ${btn.color}35`, color:btn.color, borderRadius:100, padding:"4px 12px", fontSize:"0.68rem", cursor:"pointer", fontFamily:"inherit", fontWeight:500 }}>{btn.label}</button>
-              ))}
+      <SectionHead title="Family Updates" extra={
+        <span style={{ background:"rgba(212,168,67,0.15)", border:"1px solid rgba(212,168,67,0.3)", borderRadius:100, padding:"3px 12px", fontSize:"0.68rem", color:G.gold, fontWeight:600 }}>
+          {updates.length} posts
+        </span>
+      } />
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {updates.map((u, i) => {
+          const isExpanded = expanded === u.id;
+          const featured   = i === 0;
+          const newPost    = isNew(u);
+          return (
+            <div key={u.id}
+              style={{ background: featured ? "linear-gradient(135deg,#1A1200,#0D0D0D)" : G.black2, border:`1px solid ${featured ? "rgba(212,168,67,0.4)" : "rgba(255,255,255,0.06)"}`, borderRadius:14, overflow:"hidden", transition:"all 0.2s", cursor:"pointer" }}
+              onClick={() => setExpanded(isExpanded ? null : u.id)}
+            >
+              {/* Card Header */}
+              <div style={{ padding:"16px 20px", display:"flex", alignItems:"flex-start", gap:14 }}>
+                {/* Icon */}
+                <div style={{ width:42, height:42, borderRadius:10, background: featured ? "rgba(212,168,67,0.15)" : "rgba(212,168,67,0.08)", border:`1px solid ${featured ? "rgba(212,168,67,0.3)" : "rgba(212,168,67,0.15)"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.1rem", flexShrink:0 }}>{u.icon}</div>
+
+                <div style={{ flex:1, minWidth:0 }}>
+                  {/* Category + badges */}
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, flexWrap:"wrap" }}>
+                    <strong style={{ fontSize:"0.8rem", color: featured ? G.goldL : G.gold, fontWeight:600 }}>{u.category}</strong>
+                    {newPost && <span style={{ background:"rgba(212,168,67,0.2)", border:"1px solid rgba(212,168,67,0.4)", borderRadius:100, padding:"1px 8px", fontSize:"0.6rem", color:G.gold, fontWeight:700, letterSpacing:"0.06em" }}>NEW</span>}
+                    {featured && <span style={{ background:"rgba(212,168,67,0.15)", border:"1px solid rgba(212,168,67,0.3)", borderRadius:100, padding:"1px 8px", fontSize:"0.6rem", color:G.gold, fontWeight:700, letterSpacing:"0.06em" }}>LATEST</span>}
+                    <span style={{ fontSize:"0.72rem", color:G.gray, marginLeft:"auto" }}>{u.time}</span>
+                  </div>
+
+                  {/* Preview or full text */}
+                  {!isExpanded ? (
+                    <p style={{ fontSize:"0.88rem", color:"rgba(250,250,250,0.65)", fontWeight:300, lineHeight:1.5, margin:0, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+                      {u.text}
+                    </p>
+                  ) : (
+                    <p style={{ fontSize:"0.9rem", color:"rgba(250,250,250,0.8)", fontWeight:300, lineHeight:1.75, margin:0 }}>
+                      {u.text}
+                    </p>
+                  )}
+                </div>
+
+                {/* Expand arrow */}
+                <div style={{ color:G.gold, fontSize:"1rem", flexShrink:0, transition:"transform 0.3s", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", marginTop:2 }}>⌄</div>
+              </div>
+
+              {/* Expanded share buttons */}
+              {isExpanded && (
+                <div style={{ padding:"0 20px 16px 20px", borderTop:"1px solid rgba(255,255,255,0.05)", paddingTop:12, display:"flex", gap:8, flexWrap:"wrap" }} onClick={e => e.stopPropagation()}>
+                  {[
+                    { label:"Share on X",        color:"#1DA1F2", url:`https://twitter.com/intent/tweet?text=${encodeURIComponent(u.category+" — 8NMotion Family Update")}&url=${encodeURIComponent(shareUrl)}` },
+                    { label:"Share on Facebook", color:"#1877F2", url:`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}` },
+                    { label:"Copy Link",         color:G.gold,    copy:true },
+                  ].map((btn,i) => (
+                    <button key={i} onClick={() => { if(btn.copy){navigator.clipboard.writeText(shareUrl);}else{window.open(btn.url,"_blank");} }}
+                      style={{ background:`${btn.color}15`, border:`1px solid ${btn.color}35`, color:btn.color, borderRadius:100, padding:"4px 14px", fontSize:"0.68rem", cursor:"pointer", fontFamily:"inherit", fontWeight:500 }}>
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      ))}
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -804,25 +856,9 @@ function PhotoUploader() {
   const compressImage = (file) => new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX_W  = 900; // smaller = faster upload
-        const ratio  = Math.min(MAX_W / img.width, 1);
-        canvas.width  = img.width  * ratio;
-        canvas.height = img.height * ratio;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-          const reader2 = new FileReader();
-          reader2.onload = (e2) => {
-            const base64 = e2.result.split(",")[1];
-            resolve({ base64, contentType: "image/jpeg", filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_") });
-          };
-          reader2.readAsDataURL(blob);
-        }, "image/jpeg", 0.70); // lower quality = much faster
-      };
-      img.src = e.target.result;
+      const base64 = e.target.result.split(",")[1];
+      const filename = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      resolve({ base64, contentType: file.type || "image/jpeg", filename });
     };
     reader.readAsDataURL(file);
   });
@@ -1184,6 +1220,7 @@ export default function App() {
           {showSection("home")    && <BlaizeCountdown />}
           {showSection("home")    && <RotatingQuote />}
           {showSection("home")    && <ThisWeek events={siteData.events} />}
+          {showSection("updates") && <UpdatesFeed updates={siteData.updates} />}
           {showSection("crew")    && <CrewSection onSelectMember={setProfileOpen} />}
           {showSection("parents") && <ParentsSection />}
           {showSection("parents") && <AtlantaUnboxedFeature />}
@@ -1193,7 +1230,7 @@ export default function App() {
               <Spotlight spotlights={siteData.spotlights} />
             </div>
           )}
-          {showSection("updates") && <UpdatesFeed updates={siteData.updates} />}
+          {view==="updates"        && <UpdatesFeed updates={siteData.updates} />}
           {showSection("photos")  && <PhotosSection />}
           {view==="home"          && <SubscribeForm />}
         </div>
