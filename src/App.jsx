@@ -354,7 +354,7 @@ function Hero({ onSelectMember }) {
     return Math.ceil((bday - now) / (1000*60*60*24));
   };
   const days = daysUntilBday();
-  const showBdayTicket = days <= 30;
+  const showBdayTicket = days <= 35;
 
   return (
     <div style={{ background:G.black, position:"relative", overflow:"hidden", display:"flex", flexDirection:"column" }}>
@@ -885,6 +885,40 @@ function PhotoUploader() {
   const fileRef = useRef(null);
 
   // Compress image in browser before upload
+  const prepareImage = (file) => new Promise((resolve, reject) => {
+    // If file is under 3MB send directly, otherwise resize first
+    if (file.size < 3 * 1024 * 1024) {
+      const reader = new FileReader();
+      reader.onload  = e => resolve({ base64: e.target.result.split(",")[1], contentType: file.type || "image/jpeg", filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_") });
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    } else {
+      // Resize large photos before upload
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_W  = 1200;
+          const ratio  = Math.min(MAX_W / img.width, 1);
+          canvas.width  = Math.round(img.width  * ratio);
+          canvas.height = Math.round(img.height * ratio);
+          canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(blob => {
+            const r2 = new FileReader();
+            r2.onload  = e2 => resolve({ base64: e2.target.result.split(",")[1], contentType: "image/jpeg", filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_").replace(/\.[^.]+$/, "") + ".jpg" });
+            r2.onerror = reject;
+            r2.readAsDataURL(blob);
+          }, "image/jpeg", 0.80);
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    }
+  });
+
   const handleUpload = async () => {
     if (!files.length) return;
     setUploading(true);
@@ -895,22 +929,7 @@ function PhotoUploader() {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
-        // Read file as base64
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload  = e => resolve(e.target.result.split(",")[1]);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        const filename = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const res  = await fetch("/.netlify/functions/uploadphoto", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ folder, filename, data: base64, contentType: file.type || "image/jpeg" }),
-        });
-        const data = await res.json();
-        done.push({ name: filename, success: !!data.success, error: data.error });
+        const { base64, contentType, filename } = await prepareImage(file);
       } catch (err) {
         done.push({ name: file.name, success: false, error: err.message });
       }
@@ -1246,8 +1265,7 @@ export default function App() {
       ) : profileOpen ? (
         <ProfilePage name={profileOpen} onBack={() => setProfileOpen(null)} messages={davianMsgs} onAddMessage={handleAddMessage} />
       ) : (
-        <div style={{ maxWidth:1100, margin:"0 auto", padding:"clamp(32px,5vw,56px) clamp(20px,4vw,40px)" }}>
-          {showSection("home")    && <BlaizeCountdown />}
+        <div style={{ maxWidth:1100, margin:"0 auto", padding:"clamp(20px,3vw,36px) clamp(20px,4vw,40px)" }}>
           {showSection("home")    && <RotatingQuote />}
           {showSection("home")    && <ThisWeek events={siteData.events} />}
           {showSection("crew")    && <CrewSection onSelectMember={setProfileOpen} />}
