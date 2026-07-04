@@ -1,11 +1,16 @@
 const { getStore } = require("@netlify/blobs");
 
-exports.handler = async function (event) {
-  const store = getStore("8nmotion-data");
+const getStore_ = () => getStore({
+  name: "8nmotion-data",
+  siteID: process.env.NETLIFY_SITE_ID || process.env.SITE_ID,
+  token:  process.env.NETLIFY_BLOBS_TOKEN || process.env.TOKEN,
+});
 
+exports.handler = async function (event) {
   if (event.httpMethod === "GET") {
     try {
-      const data = await store.get("site-data", { type: "json" });
+      const store = getStore_();
+      const data  = await store.get("site-data", { type: "json" });
       return {
         statusCode: 200,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
@@ -18,7 +23,8 @@ exports.handler = async function (event) {
 
   if (event.httpMethod === "POST") {
     try {
-      const body = JSON.parse(event.body);
+      const store = getStore_();
+      const body  = JSON.parse(event.body);
       await store.setJSON("site-data", body);
       return {
         statusCode: 200,
