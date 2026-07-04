@@ -1,16 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: #0D0D0D;
-  color: #FAFAFA;
-  overflow-x: hidden;
-}
-
+body { font-family: 'DM Sans', sans-serif; background: #0D0D0D; color: #FAFAFA; overflow-x: hidden; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #181818; }
 ::-webkit-scrollbar-thumb { background: rgba(212,168,67,0.35); border-radius: 3px; }
-
 textarea:focus { outline: none; border-color: rgba(212,168,67,0.5) !important; }
 button { font-family: inherit; }
-button:active { opacity: 0.8; }

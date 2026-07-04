@@ -807,7 +807,7 @@ function PhotoUploader() {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX_W  = 1200;
+        const MAX_W  = 900; // smaller = faster upload
         const ratio  = Math.min(MAX_W / img.width, 1);
         canvas.width  = img.width  * ratio;
         canvas.height = img.height * ratio;
@@ -817,10 +817,10 @@ function PhotoUploader() {
           const reader2 = new FileReader();
           reader2.onload = (e2) => {
             const base64 = e2.result.split(",")[1];
-            resolve({ base64, contentType: "image/jpeg", filename: file.name });
+            resolve({ base64, contentType: "image/jpeg", filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_") });
           };
           reader2.readAsDataURL(blob);
-        }, "image/jpeg", 0.82);
+        }, "image/jpeg", 0.70); // lower quality = much faster
       };
       img.src = e.target.result;
     };
@@ -1037,9 +1037,20 @@ Media:id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(o
             <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.8rem", letterSpacing:"0.06em", color:G.gold }}>Update Site Panel</h2>
             <p style={{ fontSize:"0.82rem", color:"#6EE26E", marginTop:4, fontWeight:400 }}>✅ Updates now save for ALL devices — no more reverting!</p>
           </div>
-          <div style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:12, padding:"12px 20px", textAlign:"center" }}>
-            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.8rem", color:G.gold, lineHeight:1 }}>{visitCount.toLocaleString()}</div>
-            <div style={{ fontSize:"0.65rem", color:G.gray, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:2 }}>Site Visits</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end" }}>
+            <div style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:12, padding:"12px 20px", textAlign:"center" }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.8rem", color:G.gold, lineHeight:1 }}>{visitCount.toLocaleString()}</div>
+              <div style={{ fontSize:"0.65rem", color:G.gray, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:2 }}>Site Visits</div>
+            </div>
+            <button onClick={async () => {
+              const fresh = { siteData:{ events:DEFAULT_EVENTS, spotlights:DEFAULT_SPOTLIGHTS, updates:DEFAULT_UPDATES }, mediaItems:DEFAULT_MEDIA, davianMsgs:[] };
+              await saveSiteData(fresh);
+              setSiteData(fresh.siteData);
+              setMediaItems(fresh.mediaItems);
+              addLog("✅ Reset to latest defaults and saved for all devices!","success");
+            }} style={{ background:"none", border:"1px solid rgba(255,100,100,0.3)", color:"rgba(255,100,100,0.7)", borderRadius:8, padding:"7px 16px", cursor:"pointer", fontSize:"0.72rem", fontFamily:"inherit", whiteSpace:"nowrap" }}>
+              Reset to latest defaults
+            </button>
           </div>
         </div>
         <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:20 }}>
