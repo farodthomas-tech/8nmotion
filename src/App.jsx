@@ -345,17 +345,47 @@ function ThisWeek({ events }) {
 }
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
-function Hero({ onSelectMember }) {
-  const now = new Date();
+function Hero({ onSelectMember, latestUpdate }) {
+  const now     = new Date();
+  const isBlaizeBday = now.getMonth() === 7 && now.getDate() === 6; // Aug 6
+  const daysUntilBday = () => {
+    const bday = new Date(now.getFullYear(), 7, 6);
+    if (now > bday) bday.setFullYear(bday.getFullYear() + 1);
+    return Math.ceil((bday - now) / (1000*60*60*24));
+  };
+  const days = daysUntilBday();
+  const showBdayTicket = days <= 30;
+
   return (
-    <div style={{ background:G.black, position:"relative", overflow:"hidden", minHeight:300, display:"flex", flexDirection:"column" }}>
+    <div style={{ background:G.black, position:"relative", overflow:"hidden", display:"flex", flexDirection:"column" }}>
       <div style={{ position:"absolute", fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(180px,38vw,520px)", color:"transparent", WebkitTextStroke:"1.5px rgba(212,168,67,0.11)", lineHeight:1, right:-30, top:-80, pointerEvents:"none", userSelect:"none" }}>8</div>
       <div style={{ position:"absolute", bottom:0, left:0, right:0, height:3, background:"linear-gradient(90deg,transparent,#D4A843,transparent)" }} />
-      <div style={{ position:"relative", maxWidth:1100, margin:"0 auto", padding:"clamp(32px,5vw,56px) clamp(20px,4vw,40px) clamp(28px,4vw,48px)", width:"100%", flex:1, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
-        <div style={{ position:"absolute", top:"clamp(16px,3vw,36px)", right:"clamp(20px,4vw,40px)", textAlign:"right" }}>
-          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(1.8rem,4vw,2.8rem)", color:G.gold, lineHeight:1 }}>{now.getDate()}</div>
-          <div style={{ fontSize:"0.7rem", color:G.gray, letterSpacing:"0.08em" }}>{now.toLocaleDateString("en-US",{month:"short",year:"numeric"}).toUpperCase()}</div>
+
+      <div style={{ position:"relative", maxWidth:1100, margin:"0 auto", padding:"clamp(32px,5vw,48px) clamp(20px,4vw,40px) clamp(24px,4vw,40px)", width:"100%", flex:1, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
+
+        {/* Top right — date + birthday ticket */}
+        <div style={{ position:"absolute", top:"clamp(16px,3vw,28px)", right:"clamp(20px,4vw,40px)", textAlign:"right", display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
+          <div>
+            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(1.8rem,4vw,2.8rem)", color:G.gold, lineHeight:1 }}>{now.getDate()}</div>
+            <div style={{ fontSize:"0.7rem", color:G.gray, letterSpacing:"0.08em" }}>{now.toLocaleDateString("en-US",{month:"short",year:"numeric"}).toUpperCase()}</div>
+          </div>
+          {/* Birthday ticket */}
+          {showBdayTicket && (
+            <div style={{ background:"linear-gradient(135deg,rgba(240,120,32,0.15),rgba(240,120,32,0.08))", border:"1px solid rgba(240,120,32,0.35)", borderRadius:10, padding:"6px 10px", textAlign:"center" }}>
+              <div style={{ fontSize:"0.9rem" }}>🔥🎂</div>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.72rem", color:"#F0A060", letterSpacing:"0.06em", lineHeight:1.2 }}>
+                {isBlaizeBday ? "HAPPY BIRTHDAY BLAIZE!" : `BLAIZE'S GOLDEN BDAY`}
+              </div>
+              {!isBlaizeBday && (
+                <div style={{ fontSize:"0.6rem", color:"rgba(240,120,32,0.7)", marginTop:2 }}>
+                  {days === 1 ? "TOMORROW! 🎉" : `${days} DAYS!`}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Main title */}
         <div style={{ fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", color:G.gold, fontWeight:500, marginBottom:10 }}>Est. 2008 · Family Hub · {SEASON.name} Season</div>
         <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(3.5rem,9vw,7.5rem)", lineHeight:0.92, letterSpacing:"0.02em" }}>
           <span style={{ color:G.gold }}>8N</span>Motion
@@ -363,15 +393,29 @@ function Hero({ onSelectMember }) {
         <p style={{ marginTop:16, fontFamily:"'Lora',serif", fontStyle:"italic", fontSize:"1rem", color:G.gold, display:"flex", alignItems:"center", gap:12 }}>
           <span style={{ display:"block", width:32, height:1, background:G.gold, flexShrink:0 }} />Infinite Love. Endless Motion.
         </p>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginTop:28 }}>
+
+        {/* Crew chips — single scrollable row */}
+        <div style={{ display:"flex", gap:8, marginTop:20, overflowX:"auto", scrollbarWidth:"none", paddingBottom:2 }}>
           {CREW.map(m => (
             <span key={m.name} onClick={() => onSelectMember(m.name)}
-              style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:100, padding:"5px 14px", fontSize:"0.78rem", color:G.goldL, display:"flex", alignItems:"center", gap:6, cursor:"pointer", transition:"all 0.2s" }}
+              style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:100, padding:"5px 14px", fontSize:"0.78rem", color:G.goldL, display:"flex", alignItems:"center", gap:6, cursor:"pointer", transition:"all 0.2s", flexShrink:0, whiteSpace:"nowrap" }}
               onMouseEnter={e => { e.currentTarget.style.background="rgba(212,168,67,0.18)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.5)"; }}
               onMouseLeave={e => { e.currentTarget.style.background="rgba(212,168,67,0.08)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.2)"; }}
             >{m.icon} {m.name}</span>
           ))}
         </div>
+
+        {/* Latest update preview */}
+        {latestUpdate && (
+          <div style={{ marginTop:16, background:"rgba(212,168,67,0.06)", border:"1px solid rgba(212,168,67,0.18)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
+            <span style={{ fontSize:"1.1rem", flexShrink:0 }}>{latestUpdate.icon}</span>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:"0.68rem", color:G.gold, fontWeight:600, marginBottom:2, letterSpacing:"0.04em" }}>{latestUpdate.category} · {latestUpdate.time}</div>
+              <div style={{ fontSize:"0.8rem", color:"rgba(250,250,250,0.65)", fontWeight:300, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{latestUpdate.text}</div>
+            </div>
+            <div style={{ fontSize:"0.65rem", color:G.gold, flexShrink:0, background:"rgba(212,168,67,0.12)", border:"1px solid rgba(212,168,67,0.25)", borderRadius:100, padding:"3px 10px", fontWeight:600 }}>NEW</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1205,7 +1249,7 @@ export default function App() {
 
   return (
     <div style={{ fontFamily:"'DM Sans',sans-serif", background:G.black, color:G.white, minHeight:"100vh", overflowX:"hidden" }}>
-      <Hero onSelectMember={setProfileOpen} />
+      <Hero onSelectMember={setProfileOpen} latestUpdate={siteData.updates?.[0]} />
       <Nav view={view} setView={(v) => { setView(v); setProfileOpen(null); }} onAdmin={() => setView("admin")} />
       {(view==="home"||view==="media") && <MediaStrip media={mediaItems} />}
 
