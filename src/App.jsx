@@ -345,7 +345,7 @@ function ThisWeek({ events }) {
 }
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
-function Hero({ onSelectMember, latestUpdate }) {
+function Hero({ onSelectMember }) {
   const now     = new Date();
   const isBlaizeBday = now.getMonth() === 7 && now.getDate() === 6; // Aug 6
   const daysUntilBday = () => {
@@ -361,7 +361,7 @@ function Hero({ onSelectMember, latestUpdate }) {
       <div style={{ position:"absolute", fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(180px,38vw,520px)", color:"transparent", WebkitTextStroke:"1.5px rgba(212,168,67,0.11)", lineHeight:1, right:-30, top:-80, pointerEvents:"none", userSelect:"none" }}>8</div>
       <div style={{ position:"absolute", bottom:0, left:0, right:0, height:3, background:"linear-gradient(90deg,transparent,#D4A843,transparent)" }} />
 
-      <div style={{ position:"relative", maxWidth:1100, margin:"0 auto", padding:"clamp(32px,5vw,48px) clamp(20px,4vw,40px) clamp(24px,4vw,40px)", width:"100%", flex:1, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
+      <div style={{ position:"relative", maxWidth:1100, margin:"0 auto", padding:"clamp(20px,4vw,36px) clamp(20px,4vw,40px) clamp(20px,3vw,28px)", width:"100%", flex:1, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
 
         {/* Top right — date + birthday ticket */}
         <div style={{ position:"absolute", top:"clamp(16px,3vw,28px)", right:"clamp(20px,4vw,40px)", textAlign:"right", display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
@@ -386,16 +386,16 @@ function Hero({ onSelectMember, latestUpdate }) {
         </div>
 
         {/* Main title */}
-        <div style={{ fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", color:G.gold, fontWeight:500, marginBottom:10 }}>Est. 2008 · Family Hub · {SEASON.name} Season</div>
+        <div style={{ fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", color:G.gold, fontWeight:500, marginBottom:8 }}>Est. 2008 · Family Hub · {SEASON.name} Season</div>
         <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(3.5rem,9vw,7.5rem)", lineHeight:0.92, letterSpacing:"0.02em" }}>
           <span style={{ color:G.gold }}>8N</span>Motion
         </h1>
-        <p style={{ marginTop:16, fontFamily:"'Lora',serif", fontStyle:"italic", fontSize:"1rem", color:G.gold, display:"flex", alignItems:"center", gap:12 }}>
+        <p style={{ marginTop:12, fontFamily:"'Lora',serif", fontStyle:"italic", fontSize:"1rem", color:G.gold, display:"flex", alignItems:"center", gap:12 }}>
           <span style={{ display:"block", width:32, height:1, background:G.gold, flexShrink:0 }} />Infinite Love. Endless Motion.
         </p>
 
         {/* Crew chips — single scrollable row */}
-        <div style={{ display:"flex", gap:8, marginTop:20, overflowX:"auto", scrollbarWidth:"none", paddingBottom:2 }}>
+        <div style={{ display:"flex", gap:8, marginTop:14, overflowX:"auto", scrollbarWidth:"none", paddingBottom:2 }}>
           {CREW.map(m => (
             <span key={m.name} onClick={() => onSelectMember(m.name)}
               style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:100, padding:"5px 14px", fontSize:"0.78rem", color:G.goldL, display:"flex", alignItems:"center", gap:6, cursor:"pointer", transition:"all 0.2s", flexShrink:0, whiteSpace:"nowrap" }}
@@ -404,18 +404,6 @@ function Hero({ onSelectMember, latestUpdate }) {
             >{m.icon} {m.name}</span>
           ))}
         </div>
-
-        {/* Latest update preview */}
-        {latestUpdate && (
-          <div style={{ marginTop:16, background:"rgba(212,168,67,0.06)", border:"1px solid rgba(212,168,67,0.18)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
-            <span style={{ fontSize:"1.1rem", flexShrink:0 }}>{latestUpdate.icon}</span>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:"0.68rem", color:G.gold, fontWeight:600, marginBottom:2, letterSpacing:"0.04em" }}>{latestUpdate.category} · {latestUpdate.time}</div>
-              <div style={{ fontSize:"0.8rem", color:"rgba(250,250,250,0.65)", fontWeight:300, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{latestUpdate.text}</div>
-            </div>
-            <div style={{ fontSize:"0.65rem", color:G.gold, flexShrink:0, background:"rgba(212,168,67,0.12)", border:"1px solid rgba(212,168,67,0.25)", borderRadius:100, padding:"3px 10px", fontWeight:600 }}>NEW</div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -897,16 +885,6 @@ function PhotoUploader() {
   const fileRef = useRef(null);
 
   // Compress image in browser before upload
-  const compressImage = (file) => new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target.result.split(",")[1];
-      const filename = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      resolve({ base64, contentType: file.type || "image/jpeg", filename });
-    };
-    reader.readAsDataURL(file);
-  });
-
   const handleUpload = async () => {
     if (!files.length) return;
     setUploading(true);
@@ -917,14 +895,22 @@ function PhotoUploader() {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
-        const { base64, contentType, filename } = await compressImage(file);
+        // Read file as base64
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload  = e => resolve(e.target.result.split(",")[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const filename = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const res  = await fetch("/.netlify/functions/uploadphoto", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ folder, filename, data: base64, contentType }),
+          body: JSON.stringify({ folder, filename, data: base64, contentType: file.type || "image/jpeg" }),
         });
         const data = await res.json();
-        done.push({ name: filename, success: data.success, url: data.url, error: data.error });
+        done.push({ name: filename, success: !!data.success, error: data.error });
       } catch (err) {
         done.push({ name: file.name, success: false, error: err.message });
       }
@@ -1249,7 +1235,7 @@ export default function App() {
 
   return (
     <div style={{ fontFamily:"'DM Sans',sans-serif", background:G.black, color:G.white, minHeight:"100vh", overflowX:"hidden" }}>
-      <Hero onSelectMember={setProfileOpen} latestUpdate={siteData.updates?.[0]} />
+      <Hero onSelectMember={setProfileOpen} />
       <Nav view={view} setView={(v) => { setView(v); setProfileOpen(null); }} onAdmin={() => setView("admin")} />
       {(view==="home"||view==="media") && <MediaStrip media={mediaItems} />}
 
@@ -1264,8 +1250,8 @@ export default function App() {
           {showSection("home")    && <BlaizeCountdown />}
           {showSection("home")    && <RotatingQuote />}
           {showSection("home")    && <ThisWeek events={siteData.events} />}
-          {showSection("updates") && <UpdatesFeed updates={siteData.updates} />}
           {showSection("crew")    && <CrewSection onSelectMember={setProfileOpen} />}
+          {showSection("updates") && <UpdatesFeed updates={siteData.updates} />}
           {showSection("parents") && <ParentsSection />}
           {showSection("parents") && <AtlantaUnboxedFeature />}
           {showSection("events")  && (
