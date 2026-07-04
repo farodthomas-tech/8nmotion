@@ -202,6 +202,7 @@ function MediaStrip({ media }) {
         <div onClick={() => setExpanded(null)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.92)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
           <div onClick={e=>e.stopPropagation()} style={{ background:G.black2, border:"1px solid rgba(212,168,67,0.3)", borderRadius:16, maxWidth:600, width:"100%", overflow:"hidden" }}>
             {expanded.type==="photo" && expanded.url && <img src={`/photos/${expanded.url}`} alt={expanded.label} style={{ width:"100%", maxHeight:400, objectFit:"cover" }} />}
+            {expanded.type==="cloudinary" && expanded.url && <img src={expanded.url} alt={expanded.label} style={{ width:"100%", maxHeight:400, objectFit:"cover" }} />}
             {expanded.type==="youtube" && getEmbedUrl(expanded) && <div style={{ position:"relative", paddingBottom:"56.25%", height:0 }}><iframe src={getEmbedUrl(expanded)} style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%" }} frameBorder="0" allowFullScreen title={expanded.label} /></div>}
             {expanded.type==="instagram" && expanded.url && <div style={{ padding:20, textAlign:"center" }}><p style={{ color:G.goldL, fontSize:"0.9rem", marginBottom:12 }}>View on Instagram</p><a href={expanded.url} target="_blank" rel="noreferrer" style={{ background:G.gold, color:G.black, padding:"10px 24px", borderRadius:8, fontWeight:700, fontSize:"0.85rem", textDecoration:"none" }}>Open Post →</a></div>}
             {(expanded.type==="highlight"||!expanded.url) && <div style={{ padding:32, textAlign:"center" }}><div style={{ fontSize:"3rem", marginBottom:12 }}>{expanded.icon}</div></div>}
@@ -223,7 +224,7 @@ function MediaStrip({ media }) {
               onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(212,168,67,0.15)"}
             >
               <div style={{ height:110, background:"linear-gradient(135deg,#1A1200,#2A2000)", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden" }}>
-                {item.type==="photo"&&item.url ? <img src={`/photos/${item.url}`} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : item.type==="youtube"&&item.url ? <img src={`https://img.youtube.com/vi/${item.url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1]}/mqdefault.jpg`} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : <span style={{ fontSize:"2.5rem", opacity:0.4 }}>{item.icon||"8️⃣"}</span>}
+                {item.type==="photo"&&item.url ? <img src={`/photos/${item.url}`} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : item.type==="cloudinary"&&item.url ? <img src={item.url} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : item.type==="youtube"&&item.url ? <img src={`https://img.youtube.com/vi/${item.url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1]}/mqdefault.jpg`} alt={item.label} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : <span style={{ fontSize:"2.5rem", opacity:0.4 }}>{item.icon||"8️⃣"}</span>}
                 {(item.type==="youtube"||item.type==="tiktok"||item.type==="instagram") && <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.3)" }}><div style={{ width:36, height:36, borderRadius:"50%", background:"rgba(212,168,67,0.9)", display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ fontSize:"0.9rem", marginLeft:3 }}>▶</span></div></div>}
                 <div style={{ position:"absolute", top:6, right:6, background:"rgba(0,0,0,0.7)", borderRadius:100, padding:"2px 8px", fontSize:"0.58rem", color:G.gold, fontWeight:600, letterSpacing:"0.06em", textTransform:"uppercase" }}>{item.type==="youtube"?"YouTube":item.type==="instagram"?"Instagram":item.type==="tiktok"?"TikTok":item.type==="photo"?"Photo":"Highlight"}</div>
               </div>
@@ -876,8 +877,19 @@ function SubscribeForm() {
 }
 
 // ─── PHOTO UPLOADER ───────────────────────────────────────────────────────────
-function PhotoUploader() {
-  const FOLDERS = ["blockparty","bailee","raelyn","blaize","khari","davian","davian/artwork","kourtney","rod","legend","family","atlantaunboxed"];
+const FOLDER_LABELS = {
+  blockparty:"Block Party", bailee:"Bailee", raelyn:"Raelyn", blaize:"Blaize",
+  khari:"Khari", davian:"Davian", "davian/artwork":"Davian's Artwork",
+  kourtney:"Kourtney", rod:"Rod", legend:"Legend", family:"Family", atlantaunboxed:"Atlanta Unboxed",
+};
+const FOLDER_ICONS = {
+  blockparty:"🌍", bailee:"💅🏾", raelyn:"☀️", blaize:"🔥", khari:"🚒",
+  davian:"✈️", "davian/artwork":"🎨", kourtney:"👸🏾", rod:"👑", legend:"🐾",
+  family:"8️⃣", atlantaunboxed:"📦",
+};
+
+function PhotoUploader({ mediaItems, setMediaItems, onSaveMedia }) {
+  const FOLDERS = ["family","bailee","raelyn","blaize","khari","davian","davian/artwork","kourtney","rod","blockparty","legend","atlantaunboxed"];
   const [folder,    setFolder]    = useState("family");
   const [files,     setFiles]     = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -885,16 +897,13 @@ function PhotoUploader() {
   const [progress,  setProgress]  = useState(0);
   const fileRef = useRef(null);
 
-  // Compress image in browser before upload
   const prepareImage = (file) => new Promise((resolve, reject) => {
-    // If file is under 3MB send directly, otherwise resize first
     if (file.size < 3 * 1024 * 1024) {
       const reader = new FileReader();
       reader.onload  = e => resolve({ base64: e.target.result.split(",")[1], contentType: file.type || "image/jpeg", filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_") });
       reader.onerror = reject;
       reader.readAsDataURL(file);
     } else {
-      // Resize large photos before upload
       const reader = new FileReader();
       reader.onload = e => {
         const img = new Image();
@@ -926,20 +935,19 @@ function PhotoUploader() {
     setResults([]);
     setProgress(0);
     const done = [];
+    const newMediaItems = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
         const { base64, contentType, filename } = await prepareImage(file);
-
-        // Upload directly to Cloudinary unsigned upload preset
         const formData = new FormData();
         const blob = await fetch(`data:${contentType};base64,${base64}`).then(r => r.blob());
         formData.append("file", blob, filename);
         formData.append("upload_preset", "8nmotion");
         formData.append("folder", `8nmotion/${folder}`);
 
-        const res  = await fetch(`https://api.cloudinary.com/v1_1/rxaenomo/image/upload`, {
+        const res  = await fetch("https://api.cloudinary.com/v1_1/rxaenomo/image/upload", {
           method: "POST",
           body: formData,
         });
@@ -947,6 +955,15 @@ function PhotoUploader() {
 
         if (data.secure_url) {
           done.push({ name: filename, success: true, url: data.secure_url });
+          // Auto-add to media strip
+          newMediaItems.push({
+            id: Date.now() + i,
+            type: "cloudinary",
+            icon: FOLDER_ICONS[folder] || "📸",
+            label: `${FOLDER_LABELS[folder] || folder} — New Photo`,
+            caption: `New photo from the ${FOLDER_LABELS[folder] || folder} collection.`,
+            url: data.secure_url,
+          });
         } else {
           done.push({ name: filename, success: false, error: data.error?.message || "Upload failed" });
         }
@@ -954,6 +971,13 @@ function PhotoUploader() {
         done.push({ name: file.name, success: false, error: err.message });
       }
       setProgress(Math.round(((i + 1) / files.length) * 100));
+    }
+
+    // Add new photos to media strip automatically
+    if (newMediaItems.length > 0 && mediaItems && setMediaItems && onSaveMedia) {
+      const updated = [...newMediaItems, ...mediaItems];
+      setMediaItems(updated);
+      onSaveMedia(updated);
     }
 
     setResults(done);
@@ -1039,15 +1063,12 @@ function PhotoUploader() {
           ))}
           {successCount > 0 && (
             <div style={{ marginTop:8 }}>
-              <p style={{ fontSize:"0.72rem", color:G.gray, lineHeight:1.6 }}>
-                Photos uploaded to Cloudinary! Tell the Update Site panel to add them, e.g.:<br/>
-                <em style={{ color:G.goldL }}>"Add the photos I just uploaded to the {folder} folder to {folder === "family" ? "the family photos section" : `${folder}'s profile page`}"</em>
+              <p style={{ fontSize:"0.75rem", color:"#6EE26E", lineHeight:1.6, fontWeight:500 }}>
+                ✅ {successCount} photo{successCount>1?"s":""} uploaded and automatically added to the media strip!
               </p>
-              {results.filter(r=>r.success&&r.url).map((r,i) => (
-                <div key={i} style={{ fontSize:"0.65rem", color:G.gray, marginTop:4, wordBreak:"break-all" }}>
-                  📎 {r.url}
-                </div>
-              ))}
+              <p style={{ fontSize:"0.72rem", color:G.gray, marginTop:4, lineHeight:1.5 }}>
+                Scroll back to the home page to see {successCount>1?"them":"it"} in the scrolling strip at the top.
+              </p>
             </div>
           )}
         </div>
@@ -1193,7 +1214,7 @@ Media:id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(o
               ))}
             </div>
           </div>
-          <PhotoUploader />
+          <PhotoUploader mediaItems={mediaItems} setMediaItems={setMediaItems} onSaveMedia={handleSaveMedia} />
 
           <div style={{ background:"rgba(110,226,110,0.04)", border:"1px solid rgba(110,226,110,0.15)", borderRadius:12, padding:"24px 28px" }}>
             <div style={{ fontSize:"0.75rem", letterSpacing:"0.08em", textTransform:"uppercase", color:"#6EE26E", fontWeight:600, marginBottom:16 }}>📧 Notify Subscribers</div>

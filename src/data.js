@@ -80,6 +80,7 @@ export const DEFAULT_UPDATES = [
 ];
 
 export const DEFAULT_MEDIA = [
+  { id:11, type:"cloudinary", icon:"☀️", label:"Raelyn at the Beach 🏖️", caption:"Rae of Sunshine living her best life on the beach in Viera, FL!", url:"https://res.cloudinary.com/rxaenomo/image/upload/v1783193776/8nmotion/family/x02rw9kndooig39pwts5.jpg" },
   { id:10, type:"photo",     icon:"🌍", label:"UPS x World Cup Block Party",         caption:"Kourtney bringing the World Cup to Atlanta communities. June 9, 2026.",              url:"blockparty/IMG_0038 (2).jpg" },
   { id:9,  type:"photo",     icon:"🌍", label:"UPS x World Cup Block Party",         caption:"The 8NMotion crew at the Atlanta Unboxed block party. History in the making.",       url:"blockparty/IMG_0073.jpg"      },
   { id:8,  type:"highlight", icon:"🥎", label:"Bailee — Space Coast World Series",   caption:"Top 4 finish. .458 average. 2.7 seconds home to first. Fastest of everyone there."                                    },
