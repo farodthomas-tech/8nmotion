@@ -112,7 +112,10 @@ function SectionHead({ title, extra }) {
 // ─── PERSISTENT STORAGE via Netlify Blobs ─────────────────────────────────────
 async function loadSiteData() {
   try {
-    const res = await fetch("/.netlify/functions/sitedata");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000); // 4 second timeout
+    const res = await fetch("/.netlify/functions/sitedata", { signal: controller.signal });
+    clearTimeout(timeout);
     if (res.ok) {
       const data = await res.json();
       if (data) return data;
