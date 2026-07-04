@@ -371,14 +371,14 @@ function Hero({ onSelectMember }) {
           </div>
           {/* Birthday ticket */}
           {showBdayTicket && (
-            <div style={{ background:"linear-gradient(135deg,rgba(240,120,32,0.18),rgba(240,120,32,0.08))", border:"1px solid rgba(240,120,32,0.45)", borderRadius:12, padding:"8px 12px", textAlign:"center", minWidth:90 }}>
-              <div style={{ fontSize:"1.1rem" }}>🔥🎂</div>
-              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.85rem", color:"#F0A060", letterSpacing:"0.05em", lineHeight:1.3 }}>
-                {isBlaizeBday ? "HAPPY BIRTHDAY BLAIZE!" : "BLAIZE'S GOLDEN BDAY"}
+            <div style={{ background:"linear-gradient(135deg,rgba(240,120,32,0.18),rgba(240,120,32,0.08))", border:"1px solid rgba(240,120,32,0.45)", borderRadius:10, padding:"6px 10px", textAlign:"center", maxWidth:110 }}>
+              <div style={{ fontSize:"0.9rem", lineHeight:1 }}>🔥🎂</div>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.68rem", color:"#F0A060", letterSpacing:"0.03em", lineHeight:1.2, marginTop:3 }}>
+                {isBlaizeBday ? "HAPPY BDAY BLAIZE!" : "BLAIZE BDAY"}
               </div>
               {!isBlaizeBday && (
-                <div style={{ fontSize:"0.72rem", color:"rgba(240,120,32,0.85)", marginTop:3, fontWeight:600 }}>
-                  {days === 1 ? "TOMORROW! 🎉" : `${days} DAYS!`}
+                <div style={{ fontSize:"0.7rem", color:"#F0A060", marginTop:2, fontWeight:700 }}>
+                  {days === 1 ? "TOMORROW!" : `${days} DAYS!`}
                 </div>
               )}
             </div>
@@ -593,10 +593,11 @@ function CrewSection({ onSelectMember }) {
   return (
     <section style={{ marginBottom:56 }}>
       <SectionHead title="The Crew" extra={<span style={{ fontSize:"0.72rem", color:G.gray }}>Tap a card to view profile</span>} />
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:8 }}>
+      <style>{`.crew-scroll::-webkit-scrollbar{display:none}`}</style>
+      <div className="crew-scroll" style={{ display:"flex", gap:8, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
         {CREW.map(m => (
           <div key={m.name} onClick={() => onSelectMember(m.name)}
-            style={{ background:G.black2, border:"1px solid rgba(212,168,67,0.3)", borderRadius:12, padding:"14px 8px 12px", display:"flex", flexDirection:"column", alignItems:"center", gap:7, cursor:"pointer", transition:"all 0.2s" }}
+            style={{ background:G.black2, border:"1px solid rgba(212,168,67,0.3)", borderRadius:12, padding:"14px 10px 12px", display:"flex", flexDirection:"column", alignItems:"center", gap:7, cursor:"pointer", transition:"all 0.2s", flexShrink:0, minWidth:90 }}
             onMouseEnter={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.borderColor=G.gold; }}
             onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.borderColor="rgba(212,168,67,0.3)"; }}
           >
@@ -605,7 +606,7 @@ function CrewSection({ onSelectMember }) {
               {m.wears8 && <div style={{ position:"absolute", bottom:-3, right:-3, background:G.gold, color:G.black, fontFamily:"'Bebas Neue',sans-serif", fontSize:"0.55rem", width:15, height:15, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", border:`1px solid ${G.black2}` }}>8</div>}
             </div>
             <div style={{ fontSize:"0.72rem", fontWeight:600, color:G.white, textAlign:"center" }}>{m.name}</div>
-            <div style={{ fontSize:"0.55rem", color:G.gray, textAlign:"center", fontWeight:300, lineHeight:1.4 }}>{m.role}</div>
+            <div style={{ fontSize:"0.55rem", color:G.gray, textAlign:"center", fontWeight:300, lineHeight:1.4, maxWidth:80 }}>{m.role}</div>
             <div style={{ fontSize:"0.55rem", color:"rgba(212,168,67,0.5)", letterSpacing:"0.04em" }}>Profile →</div>
           </div>
         ))}
@@ -936,7 +937,7 @@ function PhotoUploader() {
           body: JSON.stringify({ folder, filename, data: base64, contentType }),
         });
         const data = await res.json();
-        done.push({ name: filename, success: !!data.success, error: data.error });
+        done.push({ name: filename, success: !!data.success, error: data.error || `Status ${res.status}` });
       } catch (err) {
         done.push({ name: file.name, success: false, error: err.message });
       }
@@ -1021,7 +1022,7 @@ function PhotoUploader() {
           </div>
           {results.map((r,i) => (
             <div key={i} style={{ fontSize:"0.72rem", color:r.success?"rgba(110,226,110,0.7)":"#FF6B6B", marginBottom:3 }}>
-              {r.success?"✅":"❌"} {r.name}
+              {r.success?"✅":"❌"} {r.name} {r.error ? `— ${r.error}` : ""}
             </div>
           ))}
           {successCount > 0 && (

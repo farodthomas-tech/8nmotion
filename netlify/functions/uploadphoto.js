@@ -1,5 +1,3 @@
-const { getStore } = require("@netlify/blobs");
-
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
 
@@ -8,17 +6,22 @@ exports.handler = async function (event) {
     const { folder, filename, data, contentType } = body;
 
     if (!folder || !filename || !data) {
-      return { statusCode: 400, body: JSON.stringify({ error: "Missing folder, filename, or data" }) };
+      return { statusCode: 400, body: JSON.stringify({ error: `Missing: ${!folder?"folder":""} ${!filename?"filename":""} ${!data?"data":""}`.trim() }) };
     }
 
-    // Clean filename — remove spaces and special chars
-    const cleanName = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const key = `photos/${folder}/${cleanName}`;
+    // Check size — base64 encoded, so actual size is ~75% of string length
+    const estimatedBytes = (data.length * 3) / 4;
+    if (estimatedBytes > 4.5 * 1024 * 1024) {
+      return { statusCode: 400, body: JSON.stringify({ error: `File too large (${Math.round(estimatedBytes/1024/1024)}MB). Please use a smaller photo.` }) };
+    }
 
+    const { getStore } = require("@netlify/blobs");
     const store = getStore("8nmotion-photos");
 
-    // Decode base64 and store
+    const cleanName = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const key = `photos/${folder}/${cleanName}`;
     const buffer = Buffer.from(data, "base64");
+
     await store.set(key, buffer, { metadata: { contentType: contentType || "image/jpeg" } });
 
     return {
