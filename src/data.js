@@ -80,17 +80,22 @@ export const DEFAULT_UPDATES = [
 ];
 
 export const DEFAULT_MEDIA = [
-  { id:11, type:"cloudinary", icon:"☀️", label:"Raelyn at the Beach 🏖️", caption:"Rae of Sunshine living her best life on the beach in Viera, FL!", url:"https://res.cloudinary.com/rxaenomo/image/upload/v1783193776/8nmotion/family/x02rw9kndooig39pwts5.jpg" },
-  { id:10, type:"photo",     icon:"🌍", label:"UPS x World Cup Block Party",         caption:"Kourtney bringing the World Cup to Atlanta communities. June 9, 2026.",              url:"blockparty/IMG_0038 (2).jpg" },
-  { id:9,  type:"photo",     icon:"🌍", label:"UPS x World Cup Block Party",         caption:"The 8NMotion crew at the Atlanta Unboxed block party. History in the making.",       url:"blockparty/IMG_0073.jpg"      },
-  { id:8,  type:"highlight", icon:"🥎", label:"Bailee — Space Coast World Series",   caption:"Top 4 finish. .458 average. 2.7 seconds home to first. Fastest of everyone there."                                    },
-  { id:7,  type:"highlight", icon:"🏀", label:"Raelyn + Angel Reese Fan Alert!",     caption:"Raelyn found her favorite player at the Atlanta Dream game. She is a fan for life."                                     },
-  { id:6,  type:"highlight", icon:"🎂", label:"Kourtney's 41st — The Chart House",  caption:"Oceanfront dinner, sand between her toes, and the whole family. Happy Birthday Queen!"                                 },
-  { id:5,  type:"highlight", icon:"🏆", label:"Bailee — GHSA All American",         caption:"8th in the state of Georgia. All American. That is BeautMode."                                                          },
-  { id:4,  type:"highlight", icon:"👸🏾", label:"Atlanta Unboxed x Showcase Atlanta", caption:"Kourtney x UPS x Renee Montgomery. Spotlighting Black owned businesses in Atlanta."                                   },
-  { id:3,  type:"highlight", icon:"✈️", label:"Davian — Serving Proudly",           caption:"The Prince is deployed in Venezuela. Holding it down for the country and the family."                                   },
-  { id:2,  type:"highlight", icon:"🔥", label:"Blaize — Golden Birthday Aug 6th",   caption:"She turns 6 on the 6th. The golden birthday is almost here!"                                                           },
-  { id:1,  type:"highlight", icon:"8️⃣", label:"8NMotion — Est. 2008",               caption:"Infinite Love. Endless Motion. Always moving. Always together."                                                         },
+  { id:16, type:"photo", icon:"👸🏾", label:"Kourtney and Khari — Beach Love 🏖️",        caption:"Kourtney and Khari soaking up every moment on the beach in Viera, FL. Family is everything.", url:"family/IMG_0851.jpg" },
+  { id:15, type:"photo", icon:"☀️",  label:"Raelyn Finding Treasure 🐚",                caption:"Raelyn found something special in the waves at Viera Beach. That smile says it all.",           url:"family/IMG_0789.jpg" },
+  { id:14, type:"photo", icon:"🔥",  label:"Blaize at the Beach 🏖️",                    caption:"Blaize taking it all in on the Viera shoreline. Pure peace and sunshine.",                       url:"family/IMG_0784.jpg" },
+  { id:13, type:"photo", icon:"🔥",  label:"Blaize in the Waves 🌊",                    caption:"Blaize laughing in the waves at Viera Beach. No off season for Litty!",                         url:"family/IMG_0664.jpg" },
+  { id:12, type:"photo", icon:"👑",  label:"Bailee and Kourtney — Beach Vibes 🏖️",      caption:"Bailee and Kourtney at the beach in Viera, FL for Father's Day weekend. BeautMode and the Queen.", url:"family/IMG_0633.jpg" },
+  { id:11, type:"cloudinary", icon:"☀️", label:"Raelyn at the Beach 🏖️",              caption:"Rae of Sunshine living her best life on the beach in Viera, FL!",                                url:"https://res.cloudinary.com/rxaenomo/image/upload/v1783193776/8nmotion/family/x02rw9kndooig39pwts5.jpg" },
+  { id:10, type:"photo",     icon:"🌍", label:"UPS x World Cup Block Party",           caption:"Kourtney bringing the World Cup to Atlanta communities. June 9, 2026.",                          url:"blockparty/IMG_0038 (2).jpg" },
+  { id:9,  type:"photo",     icon:"🌍", label:"UPS x World Cup Block Party",           caption:"The 8NMotion crew at the Atlanta Unboxed block party. History in the making.",                   url:"blockparty/IMG_0073.jpg" },
+  { id:8,  type:"highlight", icon:"🥎", label:"Bailee — Space Coast World Series",     caption:"Top 4 finish. .458 average. 2.7 seconds home to first. Fastest of everyone there."                                      },
+  { id:7,  type:"highlight", icon:"🏀", label:"Raelyn + Angel Reese Fan Alert!",       caption:"Raelyn found her favorite player at the Atlanta Dream game. She is a fan for life."                                       },
+  { id:6,  type:"highlight", icon:"🎂", label:"Kourtney's 41st — The Chart House",    caption:"Oceanfront dinner, sand between her toes, and the whole family. Happy Birthday Queen!"                                   },
+  { id:5,  type:"highlight", icon:"🏆", label:"Bailee — GHSA All American",           caption:"8th in the state of Georgia. All American. That is BeautMode."                                                            },
+  { id:4,  type:"highlight", icon:"👸🏾", label:"Atlanta Unboxed x Showcase Atlanta", caption:"Kourtney x UPS x Renee Montgomery. Spotlighting Black owned businesses in Atlanta."                                     },
+  { id:3,  type:"highlight", icon:"✈️", label:"Davian — Serving Proudly",             caption:"The Prince is deployed in Venezuela. Holding it down for the country and the family."                                    },
+  { id:2,  type:"highlight", icon:"🔥", label:"Blaize — Golden Birthday Aug 6th",     caption:"She turns 6 on the 6th. The golden birthday is almost here!"                                                             },
+  { id:1,  type:"highlight", icon:"8️⃣", label:"8NMotion — Est. 2008",                 caption:"Infinite Love. Endless Motion. Always moving. Always together."                                                          },
 ];
 
 export const ATLANTA_UNBOXED = {
