@@ -111,27 +111,11 @@ function SectionHead({ title, extra }) {
 
 // ─── PERSISTENT STORAGE via Netlify Blobs ─────────────────────────────────────
 async function loadSiteData() {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000); // 4 second timeout
-    const res = await fetch("/.netlify/functions/sitedata", { signal: controller.signal });
-    clearTimeout(timeout);
-    if (res.ok) {
-      const data = await res.json();
-      if (data) return data;
-    }
-  } catch {}
-  return null;
+  return null; // Blobs not configured — use defaults
 }
 
 async function saveSiteData(data) {
-  try {
-    await fetch("/.netlify/functions/sitedata", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(data),
-    });
-  } catch {}
+  // No-op until Blobs is configured
 }
 
 // ─── BLAIZE COUNTDOWN ─────────────────────────────────────────────────────────
@@ -1171,7 +1155,7 @@ Media:id,type(highlight/photo/youtube/instagram/tiktok),icon,label,caption,url(o
         <div style={{ background:"linear-gradient(135deg,#1A1200,#0D0D0D)", padding:"28px 32px", borderBottom:"1px solid rgba(212,168,67,0.15)", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16 }}>
           <div>
             <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.8rem", letterSpacing:"0.06em", color:G.gold }}>Update Site Panel</h2>
-            <p style={{ fontSize:"0.82rem", color:"#6EE26E", marginTop:4, fontWeight:400 }}>✅ Updates now save for ALL devices — no more reverting!</p>
+            <p style={{ fontSize:"0.82rem", color:G.gray, marginTop:4, fontWeight:400 }}>Type what you want to change in plain English. AI handles the rest.</p>
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end" }}>
             <div style={{ background:"rgba(212,168,67,0.08)", border:"1px solid rgba(212,168,67,0.2)", borderRadius:12, padding:"12px 20px", textAlign:"center" }}>
@@ -1261,22 +1245,12 @@ export default function App() {
   const [visitCount,  setVisitCount]  = useState(0);
 
   useEffect(() => {
-    (async () => {
-      // Load from Netlify Blobs (shared, persistent)
-      const remote = await loadSiteData();
-      if (remote) {
-        if (remote.siteData) setSiteData(remote.siteData);
-        if (remote.mediaItems) setMediaItems(remote.mediaItems);
-        if (remote.davianMsgs) setDavianMsgs(remote.davianMsgs);
-      }
-      // Visitor counter stays local
-      try {
-        const visits = parseInt(localStorage.getItem("8nm-visits")||"0") + 1;
-        localStorage.setItem("8nm-visits", visits);
-        setVisitCount(visits);
-      } catch {}
-      setLoaded(true);
-    })();
+    try {
+      const visits = parseInt(localStorage.getItem("8nm-visits")||"0") + 1;
+      localStorage.setItem("8nm-visits", visits);
+      setVisitCount(visits);
+    } catch {}
+    setLoaded(true);
   }, []);
 
   const handleSave = async (data) => {
@@ -1311,7 +1285,7 @@ export default function App() {
 
       {view==="admin" ? (
         authed
-          ? <AdminPanel siteData={siteData} setSiteData={setSiteData} onSave={handleSave} mediaItems={mediaItems} setMediaItems={setMediaItems} onSaveMedia={handleSaveMedia} visitCount={visitCount} />
+          ? <AdminPanel siteData={siteData} setSiteData={setSiteData} onSave={handleSave} mediaItems={mediaItems || DEFAULT_MEDIA} setMediaItems={setMediaItems} onSaveMedia={handleSaveMedia} visitCount={visitCount} />
           : <PasswordGate onSuccess={() => setAuthed(true)} />
       ) : profileOpen ? (
         <ProfilePage name={profileOpen} onBack={() => setProfileOpen(null)} messages={davianMsgs} onAddMessage={handleAddMessage} />
@@ -1329,7 +1303,6 @@ export default function App() {
               <Spotlight spotlights={siteData.spotlights} />
             </div>
           )}
-          {view==="updates"        && <UpdatesFeed updates={siteData.updates} />}
           {showSection("photos")  && <PhotosSection />}
           {view==="home"          && <SubscribeForm />}
         </div>
